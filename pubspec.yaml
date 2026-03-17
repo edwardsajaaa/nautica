@@ -1,0 +1,33 @@
+name: nautica
+description: "Sistem pemesanan paket wisata tur dan alat selam - Desktop Windows App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.2
+
+  # Database Lokal (Desktop - FFI)
+  sqflite_common_ffi: ^2.3.4+4
+  sqflite_common: ^2.5.4+5
+  path: ^1.9.1
+
+  # Font Modern
+  google_fonts: ^6.2.1
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
