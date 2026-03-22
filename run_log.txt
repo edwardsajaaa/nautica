@@ -1,0 +1,21 @@
+﻿Launching lib\main.dart on Windows in debug mode...
+Building Windows application...                                 
+flutter.bat : lib/core/constants/app_theme.dart(75,9): error GC6690633: No named parameter with the 
+name 'selectedLabelStyle'. [D:\Project\2026\nautica\build\windows\x64\flutter\flutter_assemble.vcxproj]
+At line:1 char:1
++ & 'C:\src\flutter\bin\flutter.bat' run -d windows 2>&1 | Out-File -Fi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (lib/core/consta...semble.vcxproj]:String) [], RemoteExcept 
+   ion
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+lib/core/database/database_helper.dart(112,12): error G4127D1E8: The getter 'Sqflite' isn't defined for 
+the type 'DatabaseHelper'. [D:\Project\2026\nautica\build\windows\x64\flutter\flutter_assemble.vcxproj]
+C:\Program Files\Microsoft Visual 
+Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppCommon.targets(254,5): error MSB8066: Custom 
+build for 'D:\Project\2026\nautica\build\windows\x64\CMakeFiles\92ab7dacfd920f577f84e55aee7ea1f1\flutter
+_windows.dll.rule;D:\Project\2026\nautica\build\windows\x64\CMakeFiles\e3ebec4027f993788e1148bb1929805e\
+flutter_assemble.rule' exited with code 1. 
+[D:\Project\2026\nautica\build\windows\x64\flutter\flutter_assemble.vcxproj]
+Building Windows application...                                     8.5s
+Error: Build process failed.
