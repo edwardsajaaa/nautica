@@ -4,7 +4,6 @@ import '../../../core/constants/app_theme.dart';
 import '../models/booking.dart';
 import '../viewmodels/booking_viewmodel.dart';
 
-/// Halaman Booking — desain terinspirasi dari traveloka/tiket.com style.
 class BookingView extends StatefulWidget {
   const BookingView({super.key});
 
@@ -13,14 +12,13 @@ class BookingView extends StatefulWidget {
 }
 
 class _BookingViewState extends State<BookingView> {
-  int _tripType = 0; // 0=Tour, 1=Diving, 2=Boat
+  int _tripType = 0;
 
   final _originCtrl = TextEditingController(text: 'Fleksibel');
   final _destCtrl = TextEditingController(text: 'Fleksibel');
   DateTime _departDate = DateTime.now().add(const Duration(days: 1));
   DateTime? _returnDate = DateTime.now().add(const Duration(days: 3));
   int _passengers = 1;
-  // tourClass removed — class not shown in horizontal bar
 
   @override
   void initState() {
@@ -38,12 +36,11 @@ class _BookingViewState extends State<BookingView> {
     super.dispose();
   }
 
-  String _fmt(DateTime dt) =>
-      '${dt.day} ${_monthName(dt.month)} ${dt.year}';
+  String _fmt(DateTime dt) => '${dt.day} ${_monthName(dt.month)} ${dt.year}';
 
   String _monthName(int m) => const [
         '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
       ][m];
 
   @override
@@ -59,14 +56,10 @@ class _BookingViewState extends State<BookingView> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  // Hero Section
-  // ─────────────────────────────────────────────────────────────────
   Widget _buildHeroSection() {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // ── Background image + overlay ──
         SizedBox(
           height: 320,
           width: double.infinity,
@@ -91,8 +84,6 @@ class _BookingViewState extends State<BookingView> {
             ],
           ),
         ),
-
-        // ── Content layer ──
         Positioned(
           top: 0,
           left: 0,
@@ -100,7 +91,6 @@ class _BookingViewState extends State<BookingView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top nav
               Padding(
                 padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
                 child: Row(
@@ -127,8 +117,6 @@ class _BookingViewState extends State<BookingView> {
                   ],
                 ),
               ),
-
-              // Headline
               const Padding(
                 padding: EdgeInsets.fromLTRB(32, 18, 32, 0),
                 child: Column(
@@ -151,8 +139,6 @@ class _BookingViewState extends State<BookingView> {
                   ],
                 ),
               ),
-
-              // Trip type chips
               Padding(
                 padding: const EdgeInsets.fromLTRB(32, 14, 32, 0),
                 child: Row(
@@ -183,8 +169,6 @@ class _BookingViewState extends State<BookingView> {
             ],
           ),
         ),
-
-        // ── Floating Desktop Search Bar (full-width horizontal) ──
         Positioned(
           bottom: -36,
           left: 24,
@@ -204,7 +188,6 @@ class _BookingViewState extends State<BookingView> {
             ),
             child: Row(
               children: [
-                // Depart from
                 _HoverField(
                   flex: 2,
                   icon: Icons.sailing,
@@ -212,7 +195,6 @@ class _BookingViewState extends State<BookingView> {
                   value: _originCtrl.text,
                   onTap: () => _editField('origin'),
                 ),
-                // Swap button
                 GestureDetector(
                   onTap: () => setState(() {
                     final t = _originCtrl.text;
@@ -230,7 +212,6 @@ class _BookingViewState extends State<BookingView> {
                         size: 16, color: AppTheme.primary),
                   ),
                 ),
-                // Sail to
                 _HoverField(
                   flex: 2,
                   icon: Icons.location_on_outlined,
@@ -238,9 +219,7 @@ class _BookingViewState extends State<BookingView> {
                   value: _destCtrl.text,
                   onTap: () => _editField('dest'),
                 ),
-                // Divider
                 Container(width: 1, height: 36, color: AppTheme.divider),
-                // Date
                 _HoverField(
                   flex: 2,
                   icon: Icons.calendar_month_outlined,
@@ -250,9 +229,7 @@ class _BookingViewState extends State<BookingView> {
                       : _fmt(_departDate),
                   onTap: () => _pickDate(isReturn: false),
                 ),
-                // Divider
                 Container(width: 1, height: 36, color: AppTheme.divider),
-                // Passengers
                 _HoverField(
                   flex: 2,
                   icon: Icons.people_outline,
@@ -260,7 +237,6 @@ class _BookingViewState extends State<BookingView> {
                   value: '$_passengers Dewasa',
                   onTap: () => _pickPassengers(),
                 ),
-                // Search CTA
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
@@ -287,10 +263,6 @@ class _BookingViewState extends State<BookingView> {
     );
   }
 
-
-  // ─────────────────────────────────────────────────────────────────
-  // Booking List
-  // ─────────────────────────────────────────────────────────────────
   Widget _buildBookingList() {
     return Consumer<BookingViewModel>(
       builder: (context, vm, _) {
@@ -302,7 +274,6 @@ class _BookingViewState extends State<BookingView> {
           return Column(
             children: [
               const SizedBox(height: 60),
-
               Expanded(
                 child: Center(
                   child: Column(
@@ -333,14 +304,15 @@ class _BookingViewState extends State<BookingView> {
         return Column(
           children: [
             const SizedBox(height: 190),
-            // Quick filters
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 0, 28, 12),
               child: Row(
                 children: [
-                  const Text('Mencari',
-                      style: TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 13)),
+                  const Text(
+                    'Mencari',
+                    style: TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 13),
+                  ),
                   const SizedBox(width: 12),
                   _ChipAction(
                       icon: Icons.wb_sunny_outlined,
@@ -372,9 +344,6 @@ class _BookingViewState extends State<BookingView> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────
-  // Dialogs & Pickers
-  // ─────────────────────────────────────────────────────────────────
   Future<void> _pickDate({required bool isReturn}) async {
     final picked = await showDatePicker(
       context: context,
@@ -524,8 +493,7 @@ class _BookingViewState extends State<BookingView> {
             onPressed: () {
               final name = nameCtrl.text.trim();
               final date = dateCtrl.text.trim();
-              final price =
-                  double.tryParse(priceCtrl.text.trim()) ?? 0;
+              final price = double.tryParse(priceCtrl.text.trim()) ?? 0;
               if (name.isEmpty || date.isEmpty || price <= 0) return;
               context.read<BookingViewModel>().addBooking(Booking(
                     customerName: name,
@@ -559,7 +527,8 @@ class _BookingViewState extends State<BookingView> {
                     fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text('Tanggal: ${booking.tourDate}',
-                style: const TextStyle(color: AppTheme.textSecondary)),
+                style:
+                    const TextStyle(color: AppTheme.textSecondary)),
             const SizedBox(height: 20),
             const Text('Ubah Status:',
                 style: TextStyle(fontWeight: FontWeight.w500)),
@@ -598,8 +567,10 @@ class _BookingViewState extends State<BookingView> {
           ctx.read<BookingViewModel>().updateStatus(booking.id!, status);
           Navigator.pop(ctx);
         },
-        child: Text(status[0].toUpperCase() + status.substring(1),
-            style: const TextStyle(fontSize: 12)),
+        child: Text(
+          status[0].toUpperCase() + status.substring(1),
+          style: const TextStyle(fontSize: 12),
+        ),
       ),
     );
   }
@@ -616,12 +587,10 @@ class _BookingViewState extends State<BookingView> {
             child: const Text('Batal'),
           ),
           FilledButton(
-            style:
-                FilledButton.styleFrom(backgroundColor: AppTheme.danger),
+            style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.danger),
             onPressed: () {
-              context
-                  .read<BookingViewModel>()
-                  .deleteBooking(booking.id!);
+              context.read<BookingViewModel>().deleteBooking(booking.id!);
               Navigator.pop(context);
             },
             child: const Text('Hapus',
@@ -633,13 +602,10 @@ class _BookingViewState extends State<BookingView> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Sub-widgets
-// ─────────────────────────────────────────────────────────────────
-
 class _NavTab extends StatelessWidget {
   final String label;
   final bool selected;
+
   const _NavTab({required this.label, required this.selected});
 
   @override
@@ -647,8 +613,7 @@ class _NavTab extends StatelessWidget {
         label,
         style: TextStyle(
           color: selected ? Colors.white : Colors.white70,
-          fontWeight:
-              selected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
           fontSize: 14,
           decoration:
               selected ? TextDecoration.underline : TextDecoration.none,
@@ -662,18 +627,19 @@ class _TripTypeChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _TripTypeChip(
-      {required this.icon,
-      required this.label,
-      required this.selected,
-      required this.onTap});
+
+  const _TripTypeChip({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: onTap,
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
           decoration: BoxDecoration(
             color: selected ? Colors.white : Colors.white24,
             borderRadius: BorderRadius.circular(24),
@@ -699,13 +665,13 @@ class _TripTypeChip extends StatelessWidget {
       );
 }
 
-/// Desktop-style interactive hover field for the search bar
 class _HoverField extends StatefulWidget {
   final int flex;
   final IconData icon;
   final String label;
   final String value;
   final VoidCallback onTap;
+
   const _HoverField({
     required this.flex,
     required this.icon,
@@ -736,9 +702,7 @@ class _HoverFieldState extends State<_HoverField> {
             height: 72,
             padding: const EdgeInsets.symmetric(horizontal: 18),
             decoration: BoxDecoration(
-              color: _hovered
-                  ? AppTheme.primaryLight
-                  : Colors.transparent,
+              color: _hovered ? AppTheme.primaryLight : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -756,11 +720,13 @@ class _HoverFieldState extends State<_HoverField> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(widget.icon,
-                        size: 16,
-                        color: _hovered
-                            ? AppTheme.primary
-                            : AppTheme.textSecondary),
+                    Icon(
+                      widget.icon,
+                      size: 16,
+                      color: _hovered
+                          ? AppTheme.primary
+                          : AppTheme.textSecondary,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -787,12 +753,12 @@ class _HoverFieldState extends State<_HoverField> {
 class _ChipAction extends StatelessWidget {
   final IconData icon;
   final String label;
+
   const _ChipAction({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -803,23 +769,26 @@ class _ChipAction extends StatelessWidget {
           children: [
             Icon(icon, size: 14, color: AppTheme.textSecondary),
             const SizedBox(width: 6),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 12, color: AppTheme.textSecondary)),
+            Text(
+              label,
+              style: const TextStyle(
+                  fontSize: 12, color: AppTheme.textSecondary),
+            ),
           ],
         ),
       );
 }
 
-// ── Booking Card ──
 class _BookingCard extends StatelessWidget {
   final Booking booking;
   final VoidCallback onTap;
   final VoidCallback onDelete;
-  const _BookingCard(
-      {required this.booking,
-      required this.onTap,
-      required this.onDelete});
+
+  const _BookingCard({
+    required this.booking,
+    required this.onTap,
+    required this.onDelete,
+  });
 
   Color _statusColor(String s) => switch (s) {
         'confirmed' => AppTheme.success,
@@ -860,14 +829,17 @@ class _BookingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(booking.customerName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 15)),
+                    Text(
+                      booking.customerName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 15),
+                    ),
                     const SizedBox(height: 4),
-                    Text(booking.tourDate,
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 13)),
+                    Text(
+                      booking.tourDate,
+                      style: const TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13),
+                    ),
                   ],
                 ),
               ),
@@ -893,9 +865,10 @@ class _BookingCard extends StatelessWidget {
                     child: Text(
                       booking.status.toUpperCase(),
                       style: TextStyle(
-                          color: color,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700),
+                        color: color,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
