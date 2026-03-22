@@ -1,7 +1,7 @@
 # Nautica — Cruise & Tour Booking Management System
 
 <p align="center">
-  <img src="assets/images/booking_hero.png" alt="Nautica Banner" width="100%" />
+  <img src="assets/images/nautica_banner.png" alt="Nautica Banner" width="100%" />
 </p>
 
 <p align="center">
