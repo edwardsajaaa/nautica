@@ -95,7 +95,7 @@ class _MainShellState extends State<MainShell> {
     _NavItem(Icons.dashboard, 'Beranda'),
     _NavItem(Icons.assignment, 'Laporan Manifest'),
     _NavItem(Icons.qr_code_scanner, 'Simulasi Boarding'),
-    _NavItem(Icons.settings, 'Settings'),
+    _NavItem(Icons.settings, 'Manajemen Kapal'),
   ];
 
   @override
@@ -148,6 +148,27 @@ class _MainShellState extends State<MainShell> {
                   // Settings tidak memiliki halaman
                   final isClickable = index < 3;
 
+                  // Tambahkan badge untuk Laporan Manifest (Index 1)
+                  Widget iconWidget = Icon(
+                    item.icon,
+                    size: 20,
+                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                  );
+
+                  if (index == 1) {
+                    // Dapatkan total tiket terjual untuk badge notifikasi
+                    final vm = context.watch<TicketingViewModel>();
+                    final totalSold = vm.schedules.fold<int>(0, (prev, s) => prev + (s['sold_seats'] as int));
+                    
+                    if (totalSold > 0) {
+                      iconWidget = Badge(
+                        label: Text(totalSold.toString()),
+                        backgroundColor: AppTheme.danger,
+                        child: iconWidget,
+                      );
+                    }
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -170,13 +191,7 @@ class _MainShellState extends State<MainShell> {
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                item.icon,
-                                size: 20,
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppTheme.textSecondary,
-                              ),
+                              iconWidget,
                               const SizedBox(width: 12),
                               Text(
                                 item.label,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/database/database_helper.dart';
 import '../../../core/constants/app_constants.dart';
@@ -5,8 +6,10 @@ import '../../../core/constants/app_constants.dart';
 class TicketingViewModel extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  List<Map<String, dynamic>> _schedules = [];
-  List<Map<String, dynamic>> get schedules => _schedules;
+  List<Map<String, dynamic>> _allSchedules = [];
+  List<Map<String, dynamic>> _filteredSchedules = [];
+  
+  List<Map<String, dynamic>> get schedules => _filteredSchedules;
 
   Map<String, dynamic>? _selectedSchedule;
   Map<String, dynamic>? get selectedSchedule => _selectedSchedule;
@@ -20,18 +23,83 @@ class TicketingViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchSchedules() async {
-    _isLoading = true;
-    notifyListeners();
+  // --- Metrics ---
+  double _totalRevenue = 0;
+  double get totalRevenue => _totalRevenue;
+
+  int _totalShips = 0;
+  int get totalShips => _totalShips;
+
+  int _remainingSeats = 0;
+  int get remainingSeats => _remainingSeats;
+
+  // --- Filter ---
+  String _filterStatus = 'Semua'; // Semua, Aktif, Penuh
+  String get filterStatus => _filterStatus;
+
+  Timer? _refreshTimer;
+
+  TicketingViewModel() {
+    _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      fetchSchedules(isRefresh: true);
+    });
+  }
+
+  Future<void> fetchSchedules({bool isRefresh = false}) async {
+    if (!isRefresh) {
+      _isLoading = true;
+      notifyListeners();
+    }
 
     try {
-      _schedules = await _dbHelper.queryAll(AppConstants.tableSchedules);
+      _allSchedules = await _dbHelper.queryAll(AppConstants.tableSchedules);
+      _calculateMetrics();
+      applyFilter(_filterStatus);
     } catch (e) {
       debugPrint('Error fetching schedules: $e');
     } finally {
-      _isLoading = false;
+      if (!isRefresh) {
+        _isLoading = false;
+      }
       notifyListeners();
     }
+  }
+
+  void _calculateMetrics() {
+    _totalShips = _allSchedules.length;
+    _totalRevenue = 0;
+    _remainingSeats = 0;
+
+    for (var schedule in _allSchedules) {
+      final sold = schedule['sold_seats'] as int;
+      final total = schedule['total_seats'] as int;
+      final price = (schedule['price'] as num).toDouble();
+
+      _remainingSeats += (total - sold);
+      _totalRevenue += (sold * price);
+    }
+  }
+
+  void applyFilter(String status) {
+    _filterStatus = status;
+    if (status == 'Aktif') {
+      _filteredSchedules = _allSchedules.where((s) => (s['sold_seats'] as int) < (s['total_seats'] as int)).toList();
+    } else if (status == 'Penuh') {
+      _filteredSchedules = _allSchedules.where((s) => (s['sold_seats'] as int) == (s['total_seats'] as int)).toList();
+    } else {
+      _filteredSchedules = List.from(_allSchedules);
+    }
+    notifyListeners();
   }
 
   Future<void> selectSchedule(Map<String, dynamic> schedule) async {
@@ -73,7 +141,7 @@ class TicketingViewModel extends ChangeNotifier {
     required String passengerNik,
   }) async {
     if (_selectedSchedule == null || _selectedSeat == null) return null;
-    if (passengerNik.length != 16) return null; // Validation
+    if (passengerNik.length != 16) return null;
 
     _isLoading = true;
     notifyListeners();
@@ -100,7 +168,7 @@ class TicketingViewModel extends ChangeNotifier {
 
       // Refresh data
       await fetchBookedSeats(scheduleId);
-      await fetchSchedules(); // to update sold seats in dashboard
+      await fetchSchedules(); // to update dashboard metrics immediately
       
       _selectedSeat = null;
       return ticketId;

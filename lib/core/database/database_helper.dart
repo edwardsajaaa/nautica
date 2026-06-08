@@ -63,8 +63,10 @@ class DatabaseHelper {
         ship_name      TEXT    NOT NULL,
         route          TEXT    NOT NULL,
         departure_date TEXT    NOT NULL,
+        departure_time TEXT    NOT NULL,
         total_seats    INTEGER NOT NULL,
-        sold_seats     INTEGER NOT NULL DEFAULT 0
+        sold_seats     INTEGER NOT NULL DEFAULT 0,
+        price          REAL    NOT NULL
       )
     ''');
 
@@ -93,26 +95,32 @@ class DatabaseHelper {
       'ship_name': 'KM Karya Indah',
       'route': 'Manado - Ternate',
       'departure_date': today,
+      'departure_time': '14:00',
       'total_seats': 20, // 5 rows x 4 cols
       'sold_seats': 0,
+      'price': 250000.0,
     });
     
     await db.insert(AppConstants.tableSchedules, {
       'ship_name': 'KM Marina Bahari',
       'route': 'Manado - Siau',
       'departure_date': today,
+      'departure_time': '17:30',
       'total_seats': 20,
       'sold_seats': 0,
+      'price': 150000.0,
     });
   }
 
   // ── Migrasi Database ───────────────────────────────────────────────
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
+    if (oldVersion < 4) {
       // Drop old tables
       await db.execute('DROP TABLE IF EXISTS tour_packages');
       await db.execute('DROP TABLE IF EXISTS bookings');
       await db.execute('DROP TABLE IF EXISTS equipments');
+      await db.execute('DROP TABLE IF EXISTS ${AppConstants.tableSchedules}');
+      await db.execute('DROP TABLE IF EXISTS ${AppConstants.tableManifest}');
       
       // Create new tables (if users table doesn't exist, it will be handled. But we assume it exists)
       await db.execute('''
@@ -121,8 +129,10 @@ class DatabaseHelper {
           ship_name      TEXT    NOT NULL,
           route          TEXT    NOT NULL,
           departure_date TEXT    NOT NULL,
+          departure_time TEXT    NOT NULL,
           total_seats    INTEGER NOT NULL,
-          sold_seats     INTEGER NOT NULL DEFAULT 0
+          sold_seats     INTEGER NOT NULL DEFAULT 0,
+          price          REAL    NOT NULL
         )
       ''');
 
