@@ -210,14 +210,12 @@ class _LoginViewState extends State<LoginView>
                                 subtitle:
                                     'Sign in with your account\nto access the dashboard',
                                 buttonText: 'Sign Up',
-                                icon: Icons.anchor,
                               ),
                               secondChild: _buildTogglePanelContent(
                                 title: 'Hello,\nWorld!',
                                 subtitle:
                                     'Create your account\nand join us today',
                                 buttonText: 'Sign In',
-                                icon: Icons.sailing,
                               ),
                               crossFadeState: _isSignUp
                                   ? CrossFadeState.showSecond
@@ -521,14 +519,13 @@ class _LoginViewState extends State<LoginView>
     required String title,
     required String subtitle,
     required String buttonText,
-    required IconData icon,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 36),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 48, color: Colors.white70),
+          Image.asset('assets/images/logo.png', width: 120, height: 120),
           const SizedBox(height: 20),
           Text(
             title,

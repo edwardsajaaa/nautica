@@ -45,7 +45,6 @@ class DatabaseHelper {
 
   // ── Pembuatan Tabel ────────────────────────────────────────────────
   /// Dipanggil saat database pertama kali dibuat.
-  /// Membuat tiga tabel utama: tour_packages, bookings, equipments.
   Future<void> _onCreate(Database db, int version) async {
     // Tabel users (autentikasi)
     await db.execute('''
@@ -57,50 +56,89 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabel paket wisata tur
+    // Tabel jadwal kapal
     await db.execute('''
-      CREATE TABLE ${AppConstants.tableTourPackages} (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        title       TEXT    NOT NULL,
-        description TEXT    NOT NULL,
-        price       REAL    NOT NULL,
-        image_path  TEXT
-      )
-    ''');
-
-    // Tabel pemesanan (booking)
-    await db.execute('''
-      CREATE TABLE ${AppConstants.tableBookings} (
-        id            INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_name TEXT    NOT NULL,
-        tour_date     TEXT    NOT NULL,
-        total_price   REAL    NOT NULL,
-        status        TEXT    NOT NULL DEFAULT 'pending'
-      )
-    ''');
-
-    // Tabel peralatan selam (equipment)
-    await db.execute('''
-      CREATE TABLE ${AppConstants.tableEquipments} (
+      CREATE TABLE ${AppConstants.tableSchedules} (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
-        name           TEXT    NOT NULL,
-        stock          INTEGER NOT NULL DEFAULT 0,
-        price_per_item REAL    NOT NULL
+        ship_name      TEXT    NOT NULL,
+        route          TEXT    NOT NULL,
+        departure_date TEXT    NOT NULL,
+        total_seats    INTEGER NOT NULL,
+        sold_seats     INTEGER NOT NULL DEFAULT 0
       )
     ''');
+
+    // Tabel manifest penumpang
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableManifest} (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        schedule_id    INTEGER NOT NULL,
+        passenger_name TEXT    NOT NULL,
+        passenger_nik  TEXT    NOT NULL,
+        seat_number    TEXT    NOT NULL,
+        purchase_time  TEXT    NOT NULL,
+        ticket_id      TEXT    NOT NULL UNIQUE
+      )
+    ''');
+
+    // Insert Dummy Schedules
+    await _insertDummySchedules(db);
+  }
+
+  Future<void> _insertDummySchedules(Database db) async {
+    final now = DateTime.now();
+    final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    
+    await db.insert(AppConstants.tableSchedules, {
+      'ship_name': 'KM Karya Indah',
+      'route': 'Manado - Ternate',
+      'departure_date': today,
+      'total_seats': 20, // 5 rows x 4 cols
+      'sold_seats': 0,
+    });
+    
+    await db.insert(AppConstants.tableSchedules, {
+      'ship_name': 'KM Marina Bahari',
+      'route': 'Manado - Siau',
+      'departure_date': today,
+      'total_seats': 20,
+      'sold_seats': 0,
+    });
   }
 
   // ── Migrasi Database ───────────────────────────────────────────────
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
+    if (oldVersion < 3) {
+      // Drop old tables
+      await db.execute('DROP TABLE IF EXISTS tour_packages');
+      await db.execute('DROP TABLE IF EXISTS bookings');
+      await db.execute('DROP TABLE IF EXISTS equipments');
+      
+      // Create new tables (if users table doesn't exist, it will be handled. But we assume it exists)
       await db.execute('''
-        CREATE TABLE IF NOT EXISTS ${AppConstants.tableUsers} (
-          id        INTEGER PRIMARY KEY AUTOINCREMENT,
-          username  TEXT    NOT NULL UNIQUE,
-          password  TEXT    NOT NULL,
-          full_name TEXT    NOT NULL
+        CREATE TABLE IF NOT EXISTS ${AppConstants.tableSchedules} (
+          id             INTEGER PRIMARY KEY AUTOINCREMENT,
+          ship_name      TEXT    NOT NULL,
+          route          TEXT    NOT NULL,
+          departure_date TEXT    NOT NULL,
+          total_seats    INTEGER NOT NULL,
+          sold_seats     INTEGER NOT NULL DEFAULT 0
         )
       ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${AppConstants.tableManifest} (
+          id             INTEGER PRIMARY KEY AUTOINCREMENT,
+          schedule_id    INTEGER NOT NULL,
+          passenger_name TEXT    NOT NULL,
+          passenger_nik  TEXT    NOT NULL,
+          seat_number    TEXT    NOT NULL,
+          purchase_time  TEXT    NOT NULL,
+          ticket_id      TEXT    NOT NULL UNIQUE
+        )
+      ''');
+
+      await _insertDummySchedules(db);
     }
   }
 

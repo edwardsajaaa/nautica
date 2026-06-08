@@ -5,12 +5,12 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/constants/app_theme.dart';
 import 'features/auth/views/login_view.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';
-import 'features/tour_catalog/views/tour_catalog_view.dart';
-import 'features/tour_catalog/viewmodels/tour_catalog_viewmodel.dart';
-import 'features/booking/views/booking_view.dart';
-import 'features/booking/viewmodels/booking_viewmodel.dart';
-import 'features/admin_dashboard/views/admin_dashboard_view.dart';
-import 'features/admin_dashboard/viewmodels/admin_dashboard_viewmodel.dart';
+import 'features/ticketing/views/dashboard_view.dart';
+import 'features/ticketing/viewmodels/ticketing_viewmodel.dart';
+import 'features/manifest/views/manifest_report_view.dart';
+import 'features/manifest/viewmodels/manifest_viewmodel.dart';
+import 'features/boarding/views/boarding_simulation_view.dart';
+import 'features/boarding/viewmodels/boarding_viewmodel.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -20,9 +20,9 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
-        ChangeNotifierProvider(create: (_) => TourCatalogViewModel()),
-        ChangeNotifierProvider(create: (_) => BookingViewModel()),
-        ChangeNotifierProvider(create: (_) => AdminDashboardViewModel()),
+        ChangeNotifierProvider(create: (_) => TicketingViewModel()),
+        ChangeNotifierProvider(create: (_) => ManifestViewModel()),
+        ChangeNotifierProvider(create: (_) => BoardingViewModel()),
       ],
       child: const NauticaApp(),
     ),
@@ -86,15 +86,15 @@ class _MainShellState extends State<MainShell> {
   int _selectedIndex = 0;
 
   static const _pages = <Widget>[
-    TourCatalogView(),
-    BookingView(),
-    AdminDashboardView(),
+    DashboardView(),
+    ManifestReportView(),
+    BoardingSimulationView(),
   ];
 
   static const _navItems = [
-    _NavItem(Icons.sailing, 'Destinations'),
-    _NavItem(Icons.event_note, 'Booking'),
-    _NavItem(Icons.dashboard, 'Dashboard'),
+    _NavItem(Icons.dashboard, 'Beranda'),
+    _NavItem(Icons.assignment, 'Laporan Manifest'),
+    _NavItem(Icons.qr_code_scanner, 'Simulasi Boarding'),
     _NavItem(Icons.settings, 'Settings'),
   ];
 
@@ -122,17 +122,11 @@ class _MainShellState extends State<MainShell> {
                   padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.anchor,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.contain,
                       ),
                       const SizedBox(width: 10),
                       const Text(

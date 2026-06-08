@@ -7,11 +7,10 @@ class AppConstants {
 
   // Database
   static const String dbName = 'nautica.db';
-  static const int dbVersion = 2;
+  static const int dbVersion = 3;
 
   // Nama tabel
   static const String tableUsers = 'users';
-  static const String tableTourPackages = 'tour_packages';
-  static const String tableBookings = 'bookings';
-  static const String tableEquipments = 'equipments';
+  static const String tableSchedules = 'schedules';
+  static const String tableManifest = 'manifest';
 }
