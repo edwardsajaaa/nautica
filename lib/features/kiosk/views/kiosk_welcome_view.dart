@@ -202,11 +202,6 @@ class _KioskWelcomeViewState extends State<KioskWelcomeView> with TickerProvider
                           borderRadius: BorderRadius.circular(50),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withAlpha(40),
-                              blurRadius: 30,
-                              spreadRadius: 10,
-                            ),
-                            BoxShadow(
                               color: Colors.black.withAlpha(30),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
