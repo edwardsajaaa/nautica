@@ -23,6 +23,14 @@ The application provides a clean, modern interface inspired by leading travel pl
 
 ## Features
 
+### 🎫 Self-Service Kiosk & Ticketing (New!)
+- Dedicated standalone kiosk mode for offline ticket purchases
+- Departure schedule selection with various dummy routes (e.g., KM Kelud, KM Permata Obi)
+- Interactive seat selection grid with real-time availability tracking
+- Passenger detail form with wide layout (Name, NIK, Phone)
+- E-Ticket generation with QR Code for mobile saving/download
+- Custom light theme maintaining a clean, modern aesthetic
+
 ### 🔐 Authentication
 - Secure login and registration system
 - Animated sliding panel UI (Sign In / Sign Up)
@@ -67,14 +75,10 @@ lib/
 │   ├── constants/       # AppTheme, AppConstants
 │   └── database/        # DatabaseHelper (SQLite FFI)
 ├── features/
-│   ├── auth/
-│   │   ├── models/      # User model
-│   │   ├── viewmodels/  # AuthViewModel
-│   │   └── views/       # LoginView
-│   └── booking/
-│       ├── models/      # Booking model
-│       ├── viewmodels/  # BookingViewModel
-│       └── views/       # BookingView
+│   ├── auth/            # Login & User Management
+│   ├── booking/         # Management Dashboard
+│   ├── kiosk/           # Self-Service Kiosk UI
+│   └── ticketing/       # Ticketing, Schedules & Seat Selection
 └── main.dart            # App entry point + AuthGate
 ```
 
