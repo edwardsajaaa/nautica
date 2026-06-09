@@ -118,11 +118,31 @@ class DatabaseHelper {
       'sold_seats': 0,
       'price': 150000.0,
     });
+    
+    await db.insert(AppConstants.tableSchedules, {
+      'ship_name': 'KM Permata Obi',
+      'route': 'Manado - Jailolo',
+      'departure_date': today,
+      'departure_time': '10:00',
+      'total_seats': 100,
+      'sold_seats': 0,
+      'price': 200000.0,
+    });
+    
+    await db.insert(AppConstants.tableSchedules, {
+      'ship_name': 'KM Bunda Maria',
+      'route': 'Manado - Talaud',
+      'departure_date': today,
+      'departure_time': '19:00',
+      'total_seats': 100,
+      'sold_seats': 0,
+      'price': 300000.0,
+    });
   }
 
   // ── Migrasi Database ───────────────────────────────────────────────
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 7) {
+    if (oldVersion < 8) {
       // Drop old tables
       await db.execute('DROP TABLE IF EXISTS tour_packages');
       await db.execute('DROP TABLE IF EXISTS bookings');
