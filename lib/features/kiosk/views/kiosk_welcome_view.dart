@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'kiosk_schedule_view.dart';
+import '../../../main.dart'; // For AuthGate
 
 class KioskWelcomeView extends StatefulWidget {
   const KioskWelcomeView({super.key});
@@ -211,6 +212,22 @@ class _KioskWelcomeViewState extends State<KioskWelcomeView> with TickerProvider
                     ),
                   ],
                 ),
+              ),
+            ),
+
+            // --- Tombol Admin Login (Pojok Kanan Atas) ---
+            Positioned(
+              top: 24,
+              right: 24,
+              child: IconButton(
+                icon: const Icon(Icons.admin_panel_settings, color: Colors.white38, size: 32),
+                tooltip: 'Admin Login',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthGate()),
+                  );
+                },
               ),
             ),
           ],

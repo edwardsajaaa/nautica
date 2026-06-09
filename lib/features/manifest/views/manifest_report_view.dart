@@ -81,17 +81,24 @@ class _ManifestReportViewState extends State<ManifestReportView> {
               border: Border.all(color: AppTheme.divider),
             ),
             child: DropdownButtonHideUnderline(
-              child: DropdownButton<Map<String, dynamic>>(
+              child: DropdownButton<int>(
                 isExpanded: true,
                 hint: const Text('Pilih Jadwal Kapal'),
-                value: vm.selectedSchedule,
+                value: vm.selectedSchedule?['id'] as int?,
                 items: vm.schedules.map((s) {
-                  return DropdownMenuItem<Map<String, dynamic>>(
-                    value: s,
+                  return DropdownMenuItem<int>(
+                    value: s['id'] as int,
                     child: Text('${s['ship_name']} (${s['route']}) - ${s['departure_date']}'),
                   );
                 }).toList(),
-                onChanged: vm.selectSchedule,
+                onChanged: (int? newId) {
+                  if (newId != null) {
+                    final selectedMap = vm.schedules.firstWhere((s) => s['id'] == newId);
+                    vm.selectSchedule(selectedMap);
+                  } else {
+                    vm.selectSchedule(null);
+                  }
+                },
               ),
             ),
           ),

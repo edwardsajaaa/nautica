@@ -15,6 +15,8 @@ import 'features/boarding/views/boarding_simulation_view.dart';
 import 'features/boarding/viewmodels/boarding_viewmodel.dart';
 import 'features/kiosk/viewmodels/kiosk_viewmodel.dart';
 import 'features/kiosk/views/kiosk_welcome_view.dart';
+import 'features/management/viewmodels/management_viewmodel.dart';
+import 'features/management/views/ship_management_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ManifestViewModel()),
         ChangeNotifierProvider(create: (_) => BoardingViewModel()),
         ChangeNotifierProvider(create: (_) => KioskViewModel()),
+        ChangeNotifierProvider(create: (_) => ManagementViewModel()),
       ],
       child: const NauticaApp(),
     ),
@@ -97,6 +100,7 @@ class _MainShellState extends State<MainShell> {
     DashboardView(),
     ManifestReportView(),
     BoardingSimulationView(),
+    ShipManagementView(),
   ];
 
   static const _navItems = [
@@ -153,8 +157,8 @@ class _MainShellState extends State<MainShell> {
                 ...List.generate(_navItems.length, (index) {
                   final item = _navItems[index];
                   final isSelected = _selectedIndex == index;
-                  // Settings tidak memiliki halaman
-                  final isClickable = index < 3;
+                  // Settings sekarang mengarah ke Manajemen Kapal
+                  final isClickable = index < 4;
 
                   // Tambahkan badge untuk Laporan Manifest (Index 1)
                   Widget iconWidget = Icon(
@@ -298,7 +302,7 @@ class _MainShellState extends State<MainShell> {
 
           // ── Content Area ──
           Expanded(
-            child: _selectedIndex < 3
+            child: _selectedIndex < 4
                 ? _pages[_selectedIndex]
                 : const Center(child: Text('Settings')),
           ),

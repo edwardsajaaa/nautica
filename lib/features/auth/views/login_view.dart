@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../../kiosk/views/kiosk_welcome_view.dart';
 
 /// Halaman Login & Register — desain terinspirasi dari
 /// BOSS0exe/Sign-in-and-Sign-up-page (sliding toggle panel).
@@ -228,6 +229,24 @@ class _LoginViewState extends State<LoginView>
                     ),
                   );
                 },
+              ),
+
+              // --- Tombol Kembali (Pojok Kiri Atas) ---
+              Positioned(
+                top: 24,
+                left: 24,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+                  tooltip: 'Kembali',
+                  onPressed: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      // Fallback just in case
+                      Navigator.pushReplacementNamed(context, '/');
+                    }
+                  },
+                ),
               ),
             ],
           );
