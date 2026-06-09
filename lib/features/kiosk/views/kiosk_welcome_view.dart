@@ -10,18 +10,12 @@ class KioskWelcomeView extends StatefulWidget {
 }
 
 class _KioskWelcomeViewState extends State<KioskWelcomeView> with TickerProviderStateMixin {
-  late AnimationController _floatController;
   late AnimationController _pulseController;
   late AnimationController _bgController;
 
   @override
   void initState() {
     super.initState();
-    // Animasi mengambang (naik-turun) lambat untuk logo
-    _floatController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
 
     // Animasi detak jantung (pulse) untuk tombol CTA
     _pulseController = AnimationController(
@@ -38,7 +32,6 @@ class _KioskWelcomeViewState extends State<KioskWelcomeView> with TickerProvider
 
   @override
   void dispose() {
-    _floatController.dispose();
     _pulseController.dispose();
     _bgController.dispose();
     super.dispose();
@@ -127,26 +120,17 @@ class _KioskWelcomeViewState extends State<KioskWelcomeView> with TickerProvider
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo Animasi Float
-                    AnimatedBuilder(
-                      animation: _floatController,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, -20 * _floatController.value),
-                          child: child,
-                        );
-                      },
-                      child: Hero(
-                        tag: 'nautica_logo',
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          width: 220,
-                          height: 220,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.directions_boat,
-                            size: 180,
-                            color: Colors.white,
-                          ),
+                    // Logo
+                    Hero(
+                      tag: 'nautica_logo',
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 220,
+                        height: 220,
+                        errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.directions_boat,
+                          size: 180,
+                          color: Colors.white,
                         ),
                       ),
                     ),
