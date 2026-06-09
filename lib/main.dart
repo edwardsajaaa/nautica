@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'core/constants/app_theme.dart';
+import 'core/constants/app_constants.dart';
+import 'core/database/database_helper.dart';
 import 'features/auth/views/login_view.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';
 import 'features/ticketing/views/dashboard_view.dart';
@@ -11,10 +13,15 @@ import 'features/manifest/views/manifest_report_view.dart';
 import 'features/manifest/viewmodels/manifest_viewmodel.dart';
 import 'features/boarding/views/boarding_simulation_view.dart';
 import 'features/boarding/viewmodels/boarding_viewmodel.dart';
+import 'features/kiosk/viewmodels/kiosk_viewmodel.dart';
+import 'features/kiosk/views/kiosk_welcome_view.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
+  
+  await DatabaseHelper.instance.database;
 
   runApp(
     MultiProvider(
@@ -23,6 +30,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => TicketingViewModel()),
         ChangeNotifierProvider(create: (_) => ManifestViewModel()),
         ChangeNotifierProvider(create: (_) => BoardingViewModel()),
+        ChangeNotifierProvider(create: (_) => KioskViewModel()),
       ],
       child: const NauticaApp(),
     ),
@@ -35,10 +43,10 @@ class NauticaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Nautica',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const AuthGate(),
+      home: const KioskWelcomeView(),
     );
   }
 }
