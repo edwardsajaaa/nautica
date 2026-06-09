@@ -114,7 +114,7 @@ class _KioskFormViewState extends State<KioskFormView> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
           child: Container(
-            width: 800,
+            width: 1000,
             padding: const EdgeInsets.all(60),
             decoration: BoxDecoration(
               color: Colors.white,
