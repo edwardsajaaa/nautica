@@ -9,8 +9,16 @@ class KioskViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  List<Map<String, dynamic>> _allSchedules = [];
+  
   List<Map<String, dynamic>> _schedules = [];
   List<Map<String, dynamic>> get schedules => _schedules;
+
+  String _searchQuery = '';
+  String get searchQuery => _searchQuery;
+
+  String _sortFilter = 'Keberangkatan Terawal';
+  String get sortFilter => _sortFilter;
 
   Map<String, dynamic>? _selectedSchedule;
   Map<String, dynamic>? get selectedSchedule => _selectedSchedule;
@@ -27,8 +35,60 @@ class KioskViewModel extends ChangeNotifier {
   String _passengerNik = '';
   String get passengerNik => _passengerNik;
 
+  String _passengerGender = 'Laki-laki';
+  String get passengerGender => _passengerGender;
+
+  String _passengerBirthPlace = '';
+  String get passengerBirthPlace => _passengerBirthPlace;
+
+  String _passengerBirthDate = '';
+  String get passengerBirthDate => _passengerBirthDate;
+
+  String _passengerPhone = '';
+  String get passengerPhone => _passengerPhone;
+
+  String _passengerType = 'Dewasa';
+  String get passengerType => _passengerType;
+
+  String _passengerNationality = 'WNI';
+  String get passengerNationality => _passengerNationality;
+
+  String _passengerSpecialCondition = 'Tidak Ada';
+  String get passengerSpecialCondition => _passengerSpecialCondition;
+
+  double _finalPrice = 0.0;
+  double get finalPrice => _finalPrice;
+
   String? _ticketId;
   String? get ticketId => _ticketId;
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _applyFilters();
+  }
+
+  void setSortFilter(String filter) {
+    _sortFilter = filter;
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    var filtered = _allSchedules.where((s) {
+      final route = (s['route'] as String).toLowerCase();
+      final ship = (s['ship_name'] as String).toLowerCase();
+      final q = _searchQuery.toLowerCase();
+      return route.contains(q) || ship.contains(q);
+    }).toList();
+
+    if (_sortFilter == 'Keberangkatan Terawal') {
+      filtered.sort((a, b) => (a['departure_time'] as String).compareTo(b['departure_time'] as String));
+    } else if (_sortFilter == 'Harga Termurah') {
+      filtered.sort((a, b) => (a['price'] as num).compareTo(b['price'] as num));
+    }
+    
+    _schedules = filtered;
+    notifyListeners();
+  }
 
   Future<void> fetchSchedules() async {
     _isLoading = true;
@@ -36,8 +96,8 @@ class KioskViewModel extends ChangeNotifier {
 
     try {
       final allSchedules = await _dbHelper.queryAll(AppConstants.tableSchedules);
-      // Hanya tampilkan yang belum penuh
-      _schedules = allSchedules.where((s) => (s['sold_seats'] as int) < (s['total_seats'] as int)).toList();
+      _allSchedules = allSchedules;
+      _applyFilters();
     } catch (e) {
       debugPrint('Error fetching schedules: $e');
     } finally {
@@ -49,6 +109,7 @@ class KioskViewModel extends ChangeNotifier {
   void selectSchedule(Map<String, dynamic> schedule) {
     _selectedSchedule = schedule;
     _selectedSeat = null;
+    _calculateFinalPrice();
     notifyListeners();
     fetchBookedSeats(schedule['id'] as int);
   }
@@ -81,10 +142,44 @@ class KioskViewModel extends ChangeNotifier {
     }
   }
 
-  void setPassengerData(String name, String nik) {
+  void setPassengerData({
+    required String name,
+    required String nik,
+    required String gender,
+    required String birthPlace,
+    required String birthDate,
+    required String phone,
+    required String type,
+    required String nationality,
+    required String condition,
+  }) {
     _passengerName = name;
     _passengerNik = nik;
+    _passengerGender = gender;
+    _passengerBirthPlace = birthPlace;
+    _passengerBirthDate = birthDate;
+    _passengerPhone = phone;
+    _passengerType = type;
+    _passengerNationality = nationality;
+    _passengerSpecialCondition = condition;
+    
+    _calculateFinalPrice();
     notifyListeners();
+  }
+
+  void _calculateFinalPrice() {
+    if (_selectedSchedule == null) {
+      _finalPrice = 0.0;
+      return;
+    }
+    double basePrice = (_selectedSchedule!['price'] as num).toDouble();
+    if (_passengerType == 'Anak (2-12 tahun)') {
+      _finalPrice = basePrice * 0.5;
+    } else if (_passengerType == 'Bayi (< 2 tahun)') {
+      _finalPrice = basePrice * 0.1;
+    } else {
+      _finalPrice = basePrice;
+    }
   }
 
   Future<bool> processPayment() async {
@@ -103,7 +198,15 @@ class KioskViewModel extends ChangeNotifier {
         'schedule_id': scheduleId,
         'passenger_name': _passengerName,
         'passenger_nik': _passengerNik,
+        'gender': _passengerGender,
+        'birth_place': _passengerBirthPlace,
+        'birth_date': _passengerBirthDate,
+        'phone_number': _passengerPhone,
+        'passenger_type': _passengerType,
+        'nationality': _passengerNationality,
+        'special_condition': _passengerSpecialCondition,
         'seat_number': _selectedSeat,
+        'final_price': _finalPrice,
         'purchase_time': DateTime.now().toIso8601String(),
         'ticket_id': newTicketId,
       });
@@ -130,6 +233,14 @@ class KioskViewModel extends ChangeNotifier {
     _selectedSeat = null;
     _passengerName = '';
     _passengerNik = '';
+    _passengerGender = 'Laki-laki';
+    _passengerBirthPlace = '';
+    _passengerBirthDate = '';
+    _passengerPhone = '';
+    _passengerType = 'Dewasa';
+    _passengerNationality = 'WNI';
+    _passengerSpecialCondition = 'Tidak Ada';
+    _finalPrice = 0.0;
     _ticketId = null;
     _bookedSeats = [];
     notifyListeners();

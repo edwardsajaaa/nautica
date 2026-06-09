@@ -5,8 +5,35 @@ import '../viewmodels/kiosk_viewmodel.dart';
 import 'kiosk_ticket_view.dart';
 import '../../../core/constants/app_theme.dart';
 
-class KioskPaymentView extends StatelessWidget {
+class KioskPaymentView extends StatefulWidget {
   const KioskPaymentView({super.key});
+
+  @override
+  State<KioskPaymentView> createState() => _KioskPaymentViewState();
+}
+
+class _KioskPaymentViewState extends State<KioskPaymentView> with SingleTickerProviderStateMixin {
+  bool _isDataValidated = false;
+  late AnimationController _animController;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _opacityAnimation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _animController, curve: Curves.easeIn));
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _validateData() {
+    setState(() => _isDataValidated = true);
+    _animController.forward();
+  }
 
   String _formatCurrency(double amount) {
     String res = amount.toStringAsFixed(0);
@@ -67,6 +94,16 @@ class KioskPaymentView extends StatelessWidget {
                     _buildReceiptRow('Nomor Kursi', vm.selectedSeat ?? '-'),
                     const Divider(height: 32),
                     _buildReceiptRow('Nama Penumpang', vm.passengerName),
+                    const Divider(height: 16),
+                    _buildReceiptRow('NIK', vm.passengerNik),
+                    const Divider(height: 16),
+                    _buildReceiptRow('Jenis Penumpang', vm.passengerType),
+                    const Divider(height: 16),
+                    _buildReceiptRow('Jenis Kelamin', vm.passengerGender),
+                    const Divider(height: 16),
+                    _buildReceiptRow('Lahir', '${vm.passengerBirthPlace}, ${vm.passengerBirthDate.split('T').first}'),
+                    const Divider(height: 16),
+                    _buildReceiptRow('Telepon', vm.passengerPhone),
                     const SizedBox(height: 48),
                     Container(
                       padding: const EdgeInsets.all(24),
@@ -79,28 +116,79 @@ class KioskPaymentView extends StatelessWidget {
                         children: [
                           const Text('Total Bayar', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                           Text(
-                            _formatCurrency((schedule['price'] as num).toDouble()),
+                            _formatCurrency(vm.finalPrice),
                             style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary),
                           ),
                         ],
                       ),
                     ),
+                    
+                    if (!_isDataValidated) ...[
+                      const SizedBox(height: 40),
+                      const Center(
+                        child: Text('Data Sudah Benar?', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 60,
+                              child: ElevatedButton(
+                                onPressed: _validateData,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                child: const FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text('Benar', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: SizedBox(
+                              height: 60,
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                child: const FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text('Cek Kembali', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(width: 40),
               
               // Right: QRIS Payment
-              Container(
-                width: 450,
-                padding: const EdgeInsets.all(40),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 20, offset: const Offset(0, 10)),
-                  ],
-                ),
+              SizeTransition(
+                sizeFactor: CurvedAnimation(parent: _animController, curve: Curves.easeOutQuart),
+                axis: Axis.horizontal,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 40),
+                  child: FadeTransition(
+                    opacity: _opacityAnimation,
+                    child: Container(
+                      width: 450,
+                      padding: const EdgeInsets.all(40),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 20, offset: const Offset(0, 10)),
+                        ],
+                      ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -150,17 +238,20 @@ class KioskPaymentView extends StatelessWidget {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: AppTheme.primary,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                               ),
                               child: const Text(
-                                'Simulasi: Saya Sudah Bayar',
+                                'Proses Pembayaran',
                                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                               ),
                             ),
                           ),
                   ],
                 ),
+              ),
+              ),
+              ),
               ),
             ],
           ),
@@ -173,8 +264,16 @@ class KioskPaymentView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 20, color: AppTheme.textSecondary)),
-        Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+        Text(label, style: const TextStyle(fontSize: 18, color: AppTheme.textSecondary)),
+        Expanded(
+          child: Text(
+            value, 
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

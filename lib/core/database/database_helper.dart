@@ -73,13 +73,21 @@ class DatabaseHelper {
     // Tabel manifest penumpang
     await db.execute('''
       CREATE TABLE ${AppConstants.tableManifest} (
-        id             INTEGER PRIMARY KEY AUTOINCREMENT,
-        schedule_id    INTEGER NOT NULL,
-        passenger_name TEXT    NOT NULL,
-        passenger_nik  TEXT    NOT NULL,
-        seat_number    TEXT    NOT NULL,
-        purchase_time  TEXT    NOT NULL,
-        ticket_id      TEXT    NOT NULL UNIQUE
+        id                INTEGER PRIMARY KEY AUTOINCREMENT,
+        schedule_id       INTEGER NOT NULL,
+        passenger_name    TEXT    NOT NULL,
+        passenger_nik     TEXT    NOT NULL,
+        gender            TEXT    NOT NULL,
+        birth_place       TEXT    NOT NULL,
+        birth_date        TEXT    NOT NULL,
+        phone_number      TEXT    NOT NULL,
+        passenger_type    TEXT    NOT NULL,
+        nationality       TEXT    NOT NULL,
+        special_condition TEXT    NOT NULL,
+        seat_number       TEXT    NOT NULL,
+        final_price       REAL    NOT NULL,
+        purchase_time     TEXT    NOT NULL,
+        ticket_id         TEXT    NOT NULL UNIQUE
       )
     ''');
 
@@ -114,7 +122,7 @@ class DatabaseHelper {
 
   // ── Migrasi Database ───────────────────────────────────────────────
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 6) {
+    if (oldVersion < 7) {
       // Drop old tables
       await db.execute('DROP TABLE IF EXISTS tour_packages');
       await db.execute('DROP TABLE IF EXISTS bookings');
@@ -138,13 +146,21 @@ class DatabaseHelper {
 
       await db.execute('''
         CREATE TABLE IF NOT EXISTS ${AppConstants.tableManifest} (
-          id             INTEGER PRIMARY KEY AUTOINCREMENT,
-          schedule_id    INTEGER NOT NULL,
-          passenger_name TEXT    NOT NULL,
-          passenger_nik  TEXT    NOT NULL,
-          seat_number    TEXT    NOT NULL,
-          purchase_time  TEXT    NOT NULL,
-          ticket_id      TEXT    NOT NULL UNIQUE
+          id                INTEGER PRIMARY KEY AUTOINCREMENT,
+          schedule_id       INTEGER NOT NULL,
+          passenger_name    TEXT    NOT NULL,
+          passenger_nik     TEXT    NOT NULL,
+          gender            TEXT    NOT NULL,
+          birth_place       TEXT    NOT NULL,
+          birth_date        TEXT    NOT NULL,
+          phone_number      TEXT    NOT NULL,
+          passenger_type    TEXT    NOT NULL,
+          nationality       TEXT    NOT NULL,
+          special_condition TEXT    NOT NULL,
+          seat_number       TEXT    NOT NULL,
+          final_price       REAL    NOT NULL,
+          purchase_time     TEXT    NOT NULL,
+          ticket_id         TEXT    NOT NULL UNIQUE
         )
       ''');
 

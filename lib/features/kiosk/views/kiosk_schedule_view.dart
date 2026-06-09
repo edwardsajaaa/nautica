@@ -66,6 +66,7 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
               children: [
                 Expanded(
                   child: TextField(
+                    onChanged: (value) => vm.setSearchQuery(value),
                     decoration: InputDecoration(
                       hintText: 'Cari pelabuhan tujuan...',
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
@@ -82,11 +83,18 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: 'Keberangkatan Terawal',
-                      items: ['Keberangkatan Terawal', 'Harga Termurah', 'Kapasitas Terbanyak']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 18))))
-                          .toList(),
-                      onChanged: (v) {},
+                      value: vm.sortFilter,
+                      items: ['Keberangkatan Terawal', 'Harga Termurah'].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          vm.setSortFilter(value);
+                        }
+                      },
                       icon: const Icon(Icons.filter_list, color: AppTheme.primary),
                     ),
                   ),
@@ -260,7 +268,27 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
                                         ],
                                       ),
                                       
-                                      const Spacer(),
+                                      const SizedBox(height: 24),
+                                      
+                                      // Image
+                                      Expanded(
+                                        child: Container(
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(16),
+                                            border: Border.all(color: AppTheme.primary, width: 2), // Matching the blue border from screenshot
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(14),
+                                            child: Image.asset(
+                                              'assets/images/DSCF7155.jpeg',
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      
+                                      const SizedBox(height: 24),
                                       
                                       // Bottom Action
                                       Row(

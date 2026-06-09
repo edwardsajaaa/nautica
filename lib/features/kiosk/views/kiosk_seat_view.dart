@@ -223,7 +223,7 @@ class KioskSeatView extends StatelessWidget {
                   
                   const Text('Total Harga:', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
                   Text(
-                    vm.selectedSeat != null ? _formatCurrency((schedule['price'] as num).toDouble()) : 'Rp 0',
+                    vm.selectedSeat != null ? _formatCurrency(vm.finalPrice) : 'Rp 0',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,

@@ -7,7 +7,7 @@ class AppConstants {
 
   // Database
   static const String dbName = 'nautica.db';
-  static const int dbVersion = 6;
+  static const int dbVersion = 7;
 
   // Nama tabel
   static const String tableUsers = 'users';
