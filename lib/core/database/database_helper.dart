@@ -96,7 +96,7 @@ class DatabaseHelper {
       'route': 'Manado - Ternate',
       'departure_date': today,
       'departure_time': '14:00',
-      'total_seats': 20, // 5 rows x 4 cols
+      'total_seats': 100, // 10 rows x 10 cols
       'sold_seats': 0,
       'price': 250000.0,
     });
@@ -106,7 +106,7 @@ class DatabaseHelper {
       'route': 'Manado - Siau',
       'departure_date': today,
       'departure_time': '17:30',
-      'total_seats': 20,
+      'total_seats': 100, // 10 rows x 10 cols
       'sold_seats': 0,
       'price': 150000.0,
     });
@@ -114,7 +114,7 @@ class DatabaseHelper {
 
   // ── Migrasi Database ───────────────────────────────────────────────
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 4) {
+    if (oldVersion < 6) {
       // Drop old tables
       await db.execute('DROP TABLE IF EXISTS tour_packages');
       await db.execute('DROP TABLE IF EXISTS bookings');
