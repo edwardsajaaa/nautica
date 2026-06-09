@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../viewmodels/ticketing_viewmodel.dart';
+import '../../auth/viewmodels/auth_viewmodel.dart';
 import 'ticketing_view.dart';
 
 class DashboardView extends StatefulWidget {
@@ -15,7 +16,10 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<TicketingViewModel>().fetchSchedules());
+    Future.microtask(() {
+      context.read<TicketingViewModel>().fetchSchedules();
+      context.read<AuthViewModel>().fetchAllLokets();
+    });
   }
 
   String _getGreeting() {
@@ -77,7 +81,10 @@ class _DashboardViewState extends State<DashboardView> {
               IconButton(
                 icon: const Icon(Icons.refresh, color: AppTheme.primary),
                 tooltip: 'Refresh Data',
-                onPressed: () => vm.fetchSchedules(isRefresh: true),
+                onPressed: () {
+                  context.read<TicketingViewModel>().fetchSchedules(isRefresh: true);
+                  context.read<AuthViewModel>().fetchAllLokets();
+                },
               ),
             ],
           ),
@@ -97,19 +104,21 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildSummaryCard(
-                  title: 'Total Kapal',
-                  value: '${vm.totalShips}',
-                  icon: Icons.directions_boat,
-                  color: Colors.blueGrey,
+                child: Consumer<AuthViewModel>(
+                  builder: (context, auth, _) => _buildSummaryCard(
+                    title: 'Total Loket',
+                    value: '${auth.lokets.length}',
+                    icon: Icons.storefront,
+                    color: Colors.blueGrey,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildSummaryCard(
-                  title: 'Kursi Tersisa',
-                  value: '${vm.remainingSeats}',
-                  icon: Icons.event_seat,
+                  title: 'Total Kapal',
+                  value: '${vm.totalShips}',
+                  icon: Icons.directions_boat,
                   color: Colors.teal,
                 ),
               ),
@@ -132,209 +141,121 @@ class _DashboardViewState extends State<DashboardView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Jadwal Keberangkatan',
+                'Daftar Loket Terdaftar',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'Semua', label: Text('Semua')),
-                  ButtonSegment(value: 'Aktif', label: Text('Aktif')),
-                  ButtonSegment(value: 'Penuh', label: Text('Penuh')),
-                ],
-                selected: {vm.filterStatus},
-                onSelectionChanged: (Set<String> newSelection) {
-                  vm.applyFilter(newSelection.first);
-                },
-              ),
             ],
           ),
           const SizedBox(height: 16),
           
           // Content / Empty State
-          if (vm.isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (vm.schedules.isEmpty)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.event_busy, size: 80, color: Colors.grey.shade400),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Belum ada jadwal keberangkatan hari ini.",
-                      style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+          Consumer<AuthViewModel>(
+            builder: (context, authVm, _) {
+              if (authVm.isLoading) {
+                return const Expanded(child: Center(child: CircularProgressIndicator()));
+              }
+              if (authVm.lokets.isEmpty) {
+                return Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Belum ada akun Loket (Customer) yang terdaftar.",
+                          style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: vm.schedules.length,
-                itemBuilder: (context, index) {
-                  final schedule = vm.schedules[index];
-                  final sold = schedule['sold_seats'] as int;
-                  final total = schedule['total_seats'] as int;
-                  final isFull = sold == total;
-                  final isActive = sold > 0 && !isFull;
-                  final progress = total > 0 ? (sold / total) : 0.0;
-
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Colors.grey.shade200),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          // Ship Icon Container
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isFull ? Colors.grey.shade100 : AppTheme.primaryLight,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.directions_boat, 
-                              color: isFull ? Colors.grey.shade400 : AppTheme.primary, 
-                              size: 32
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          
-                          // Details
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      schedule['ship_name'],
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    // Status Badge
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: isFull ? Colors.red.shade50 : Colors.green.shade50,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: isFull ? Colors.red.shade200 : Colors.green.shade200,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        isFull ? 'Penuh' : 'Loket Buka',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: isFull ? Colors.red.shade700 : Colors.green.shade700,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.map, size: 16, color: AppTheme.textSecondary),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      schedule['route'],
-                                      style: const TextStyle(color: AppTheme.textSecondary),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    const Icon(Icons.access_time, size: 16, color: AppTheme.textSecondary),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${schedule['departure_time']} WITA',
-                                      style: const TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                
-                                // Progress Bar
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: LinearProgressIndicator(
-                                          value: progress,
-                                          minHeight: 8,
-                                          backgroundColor: Colors.grey.shade200,
-                                          color: isFull 
-                                              ? AppTheme.danger 
-                                              : (progress > 0.8 ? Colors.amber : AppTheme.primary),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      '$sold/$total Terisi',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isFull ? AppTheme.danger : AppTheme.textSecondary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          
-                          // Action Button
-                          SizedBox(
-                            width: 160,
-                            height: 48,
-                            child: ElevatedButton.icon(
-                              onPressed: isFull ? null : () {
-                                vm.selectSchedule(schedule);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const TicketingView(),
-                                  ),
-                                );
-                              },
-                              icon: Icon(isFull ? Icons.block : (isActive ? Icons.settings : Icons.storefront)),
-                              label: Text(
-                                isFull ? 'Penuh' : (isActive ? 'Kelola Loket' : 'Buka Loket')
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isActive ? Colors.green.shade600 : AppTheme.primary,
-                                foregroundColor: Colors.white,
-                                disabledBackgroundColor: Colors.grey.shade300,
-                                disabledForegroundColor: Colors.grey.shade500,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  ),
+                );
+              }
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: authVm.lokets.length,
+                  itemBuilder: (context, index) {
+                    final loket = authVm.lokets[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey.shade200),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryLight,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.storefront, 
+                                color: AppTheme.primary, 
+                                size: 32
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    loket['full_name'] ?? 'Unknown Name',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.person, size: 16, color: AppTheme.textSecondary),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        loket['username'] ?? '',
+                                        style: const TextStyle(color: AppTheme.textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            // Badge Active
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.green.shade200),
+                              ),
+                              child: Text(
+                                'Aktif',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

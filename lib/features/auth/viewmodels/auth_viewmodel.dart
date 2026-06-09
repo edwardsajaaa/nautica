@@ -11,8 +11,12 @@ class AuthViewModel extends ChangeNotifier {
 
   User? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
+  bool get isAdmin => _currentUser?.username == 'admin';
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  List<Map<String, dynamic>> _lokets = [];
+  List<Map<String, dynamic>> get lokets => _lokets;
 
   /// Inisialisasi — buat akun admin default jika belum ada.
   Future<void> initialize() async {
@@ -24,6 +28,29 @@ class AuthViewModel extends ChangeNotifier {
         password: 'admin123',
         fullName: 'Administrator',
       ).toMap());
+    }
+  }
+
+  /// Mengambil daftar semua loket (semua user kecuali admin)
+  Future<void> fetchAllLokets() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final results = await db.query(
+        AppConstants.tableUsers,
+        where: 'username != ?',
+        whereArgs: ['admin'],
+      );
+
+      _lokets = results;
+    } catch (e) {
+      debugPrint('Error fetching lokets: $e');
+      _lokets = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

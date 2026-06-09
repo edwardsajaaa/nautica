@@ -49,7 +49,7 @@ class NauticaApp extends StatelessWidget {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const KioskWelcomeView(),
+      home: const AuthGate(),
     );
   }
 }
@@ -78,7 +78,11 @@ class _AuthGateState extends State<AuthGate> {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
         if (auth.isLoggedIn) {
-          return const MainShell();
+          if (auth.isAdmin) {
+            return const MainShell();
+          } else {
+            return const KioskWelcomeView();
+          }
         }
         return const LoginView();
       },
