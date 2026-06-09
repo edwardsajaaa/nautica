@@ -11,8 +11,7 @@ import 'features/ticketing/views/dashboard_view.dart';
 import 'features/ticketing/viewmodels/ticketing_viewmodel.dart';
 import 'features/manifest/views/manifest_report_view.dart';
 import 'features/manifest/viewmodels/manifest_viewmodel.dart';
-import 'features/boarding/views/boarding_simulation_view.dart';
-import 'features/boarding/viewmodels/boarding_viewmodel.dart';
+
 import 'features/kiosk/viewmodels/kiosk_viewmodel.dart';
 import 'features/kiosk/views/kiosk_welcome_view.dart';
 import 'features/management/viewmodels/management_viewmodel.dart';
@@ -31,7 +30,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => TicketingViewModel()),
         ChangeNotifierProvider(create: (_) => ManifestViewModel()),
-        ChangeNotifierProvider(create: (_) => BoardingViewModel()),
+
         ChangeNotifierProvider(create: (_) => KioskViewModel()),
         ChangeNotifierProvider(create: (_) => ManagementViewModel()),
       ],
@@ -99,14 +98,12 @@ class _MainShellState extends State<MainShell> {
   static const _pages = <Widget>[
     DashboardView(),
     ManifestReportView(),
-    BoardingSimulationView(),
     ShipManagementView(),
   ];
 
   static const _navItems = [
     _NavItem(Icons.dashboard, 'Beranda'),
     _NavItem(Icons.assignment, 'Laporan Manifest'),
-    _NavItem(Icons.qr_code_scanner, 'Simulasi Boarding'),
     _NavItem(Icons.settings, 'Manajemen Kapal'),
   ];
 
@@ -158,7 +155,7 @@ class _MainShellState extends State<MainShell> {
                   final item = _navItems[index];
                   final isSelected = _selectedIndex == index;
                   // Settings sekarang mengarah ke Manajemen Kapal
-                  final isClickable = index < 4;
+                  final isClickable = index < 3;
 
                   // Tambahkan badge untuk Laporan Manifest (Index 1)
                   Widget iconWidget = Icon(
@@ -302,7 +299,7 @@ class _MainShellState extends State<MainShell> {
 
           // ── Content Area ──
           Expanded(
-            child: _selectedIndex < 4
+            child: _selectedIndex < 3
                 ? _pages[_selectedIndex]
                 : const Center(child: Text('Settings')),
           ),

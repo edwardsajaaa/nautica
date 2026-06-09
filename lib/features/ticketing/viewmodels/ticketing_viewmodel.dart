@@ -63,7 +63,7 @@ class TicketingViewModel extends ChangeNotifier {
 
     try {
       _allSchedules = await _dbHelper.queryAll(AppConstants.tableSchedules);
-      _calculateMetrics();
+      await _calculateMetrics();
       applyFilter(_filterStatus);
     } catch (e) {
       debugPrint('Error fetching schedules: $e');
@@ -75,7 +75,7 @@ class TicketingViewModel extends ChangeNotifier {
     }
   }
 
-  void _calculateMetrics() {
+  Future<void> _calculateMetrics() async {
     _totalShips = _allSchedules.length;
     _totalRevenue = 0;
     _remainingSeats = 0;
@@ -83,10 +83,19 @@ class TicketingViewModel extends ChangeNotifier {
     for (var schedule in _allSchedules) {
       final sold = schedule['sold_seats'] as int;
       final total = schedule['total_seats'] as int;
-      final price = (schedule['price'] as num).toDouble();
-
       _remainingSeats += (total - sold);
-      _totalRevenue += (sold * price);
+    }
+
+    try {
+      final db = await _dbHelper.database;
+      final manifest = await db.query(AppConstants.tableManifest);
+      for (var row in manifest) {
+        if (row['final_price'] != null) {
+          _totalRevenue += (row['final_price'] as num).toDouble();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching revenue: $e');
     }
   }
 
@@ -154,7 +163,15 @@ class TicketingViewModel extends ChangeNotifier {
         'schedule_id': scheduleId,
         'passenger_name': passengerName,
         'passenger_nik': passengerNik,
+        'gender': 'Laki-laki',
+        'birth_place': '-',
+        'birth_date': '-',
+        'phone_number': '-',
+        'passenger_type': 'Dewasa',
+        'nationality': 'WNI',
+        'special_condition': 'Tidak Ada',
         'seat_number': _selectedSeat,
+        'final_price': (_selectedSchedule!['price'] as num).toDouble(),
         'purchase_time': DateTime.now().toIso8601String(),
         'ticket_id': ticketId,
       });
