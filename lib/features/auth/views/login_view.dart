@@ -15,22 +15,31 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView>
     with SingleTickerProviderStateMixin {
-  // Controllers
-  final _loginUsernameCtrl = TextEditingController();
-  final _loginPasswordCtrl = TextEditingController();
+  // Controllers for Admin
+  final _adminUsernameCtrl = TextEditingController();
+  final _adminPasswordCtrl = TextEditingController();
+  final _adminLoginFormKey = GlobalKey<FormState>();
+
+  // Controllers for Customer
+  final _customerUsernameCtrl = TextEditingController();
+  final _customerPasswordCtrl = TextEditingController();
+  final _customerLoginFormKey = GlobalKey<FormState>();
+
+  // Controllers for Register
   final _regUsernameCtrl = TextEditingController();
   final _regPasswordCtrl = TextEditingController();
   final _regFullNameCtrl = TextEditingController();
-  final _loginFormKey = GlobalKey<FormState>();
   final _regFormKey = GlobalKey<FormState>();
 
-  bool _obscureLoginPw = true;
+  bool _obscureAdminPw = true;
+  bool _obscureCustomerPw = true;
   bool _obscureRegPw = true;
 
   // Animation for panel slide
   late AnimationController _animCtrl;
   late Animation<double> _slideAnim;
-  bool _isSignUp = false; // false = sign-in, true = sign-up
+  bool _isAdminMode = false; // false = customer (white left), true = admin (white right)
+  bool _isCustomerRegister = false; // toggles internal form on customer side
 
   @override
   void initState() {
@@ -45,8 +54,10 @@ class _LoginViewState extends State<LoginView>
   @override
   void dispose() {
     _animCtrl.dispose();
-    _loginUsernameCtrl.dispose();
-    _loginPasswordCtrl.dispose();
+    _adminUsernameCtrl.dispose();
+    _adminPasswordCtrl.dispose();
+    _customerUsernameCtrl.dispose();
+    _customerPasswordCtrl.dispose();
     _regUsernameCtrl.dispose();
     _regPasswordCtrl.dispose();
     _regFullNameCtrl.dispose();
@@ -54,20 +65,34 @@ class _LoginViewState extends State<LoginView>
   }
 
   void _togglePanel() {
-    setState(() => _isSignUp = !_isSignUp);
-    if (_isSignUp) {
+    setState(() {
+      _isAdminMode = !_isAdminMode;
+      if (_isAdminMode) {
+        _isCustomerRegister = false; // reset customer form state
+      }
+    });
+    if (_isAdminMode) {
       _animCtrl.forward();
     } else {
       _animCtrl.reverse();
     }
   }
 
-  Future<void> _handleLogin() async {
-    if (!_loginFormKey.currentState!.validate()) return;
+  Future<void> _handleAdminLogin() async {
+    if (!_adminLoginFormKey.currentState!.validate()) return;
     final vm = context.read<AuthViewModel>();
     await vm.login(
-      _loginUsernameCtrl.text.trim(),
-      _loginPasswordCtrl.text.trim(),
+      _adminUsernameCtrl.text.trim(),
+      _adminPasswordCtrl.text.trim(),
+    );
+  }
+
+  Future<void> _handleCustomerLogin() async {
+    if (!_customerLoginFormKey.currentState!.validate()) return;
+    final vm = context.read<AuthViewModel>();
+    await vm.login(
+      _customerUsernameCtrl.text.trim(),
+      _customerPasswordCtrl.text.trim(),
     );
   }
 
@@ -83,7 +108,7 @@ class _LoginViewState extends State<LoginView>
       _regUsernameCtrl.clear();
       _regPasswordCtrl.clear();
       _regFullNameCtrl.clear();
-      _togglePanel(); // switch back to sign-in
+      setState(() => _isCustomerRegister = false); // switch back to customer sign-in
     }
   }
 
@@ -97,7 +122,7 @@ class _LoginViewState extends State<LoginView>
 
           return Stack(
             children: [
-              // ── Sign In Form (left half) ──
+              // ── Customer Form (left half) ──
               AnimatedBuilder(
                 animation: _slideAnim,
                 builder: (context, child) {
@@ -110,15 +135,18 @@ class _LoginViewState extends State<LoginView>
                       offset: Offset(_slideAnim.value * halfW, 0),
                       child: Opacity(
                         opacity: 1.0 - _slideAnim.value * 0.3,
-                        child: child,
+                        child: IgnorePointer(
+                          ignoring: _isAdminMode,
+                          child: child,
+                        ),
                       ),
                     ),
                   );
                 },
-                child: _buildSignInForm(),
+                child: _buildCustomerForm(),
               ),
 
-              // ── Sign Up Form (slides in from left) ──
+              // ── Admin Form (slides in from left to right) ──
               AnimatedBuilder(
                 animation: _slideAnim,
                 builder: (context, child) {
@@ -130,7 +158,7 @@ class _LoginViewState extends State<LoginView>
                     child: Transform.translate(
                       offset: Offset(_slideAnim.value * halfW, 0),
                       child: IgnorePointer(
-                        ignoring: !_isSignUp,
+                        ignoring: !_isAdminMode,
                         child: Opacity(
                           opacity: _slideAnim.value,
                           child: child,
@@ -139,10 +167,10 @@ class _LoginViewState extends State<LoginView>
                     ),
                   );
                 },
-                child: _buildSignUpForm(),
+                child: _buildAdminForm(),
               ),
 
-              // ── Toggle Panel (right half, slides left when sign-up) ──
+              // ── Toggle Panel (right half, slides left when admin mode) ──
               AnimatedBuilder(
                 animation: _slideAnim,
                 builder: (context, _) {
@@ -207,18 +235,18 @@ class _LoginViewState extends State<LoginView>
                           Center(
                             child: AnimatedCrossFade(
                               firstChild: _buildTogglePanelContent(
-                                title: 'Welcome To\nNautica!',
+                                title: 'Admin\nPortal',
                                 subtitle:
-                                    'Sign in with your account\nto access the dashboard',
-                                buttonText: 'Sign Up',
+                                    'Are you an administrator?\nManage system and bookings',
+                                buttonText: 'Admin Login',
                               ),
                               secondChild: _buildTogglePanelContent(
-                                title: 'Hello,\nWorld!',
+                                title: 'Customer\nPortal',
                                 subtitle:
-                                    'Create your account\nand join us today',
-                                buttonText: 'Sign In',
+                                    'Are you a customer?\nLogin to book tickets',
+                                buttonText: 'Customer Login',
                               ),
-                              crossFadeState: _isSignUp
+                              crossFadeState: _isAdminMode
                                   ? CrossFadeState.showSecond
                                   : CrossFadeState.showFirst,
                               duration: const Duration(milliseconds: 400),
@@ -242,7 +270,6 @@ class _LoginViewState extends State<LoginView>
                     if (Navigator.canPop(context)) {
                       Navigator.pop(context);
                     } else {
-                      // Fallback just in case
                       Navigator.pushReplacementNamed(context, '/');
                     }
                   },
@@ -255,137 +282,153 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Sign In Form ──
-  Widget _buildSignInForm() {
+  Widget _buildCustomerForm() {
+    return AnimatedCrossFade(
+      firstChild: _buildCustomerSignInForm(),
+      secondChild: _buildSignUpForm(),
+      crossFadeState: _isCustomerRegister
+          ? CrossFadeState.showSecond
+          : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 300),
+      layoutBuilder: (topChild, topKey, bottomChild, bottomKey) {
+        return Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              key: bottomKey,
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: bottomChild,
+            ),
+            Positioned(
+              key: topKey,
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: topChild,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomerSignInForm() {
     return Consumer<AuthViewModel>(
       builder: (context, vm, _) {
         return Container(
           color: Colors.white,
+          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 44),
-          child: Form(
-            key: _loginFormKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Sign In',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Masuk ke akun Anda',
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Error
-                if (vm.errorMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.danger.withAlpha(15),
-                      borderRadius: BorderRadius.circular(8),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _customerLoginFormKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Customer Login',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline,
-                            color: AppTheme.danger, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            vm.errorMessage!,
-                            style: const TextStyle(
-                              color: AppTheme.danger,
-                              fontSize: 12,
-                            ),
-                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Masuk ke akun Anda',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (vm.errorMessage != null && !_isAdminMode && !_isCustomerRegister) ...[
+                    _buildErrorBox(vm.errorMessage!),
+                  ],
+
+                  _InputField(
+                    controller: _customerUsernameCtrl,
+                    hint: 'Username',
+                    icon: Icons.person_outline,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Username wajib diisi'
+                        : null,
+                    onSubmit: (_) => _handleCustomerLogin(),
+                  ),
+                  const SizedBox(height: 10),
+                  _InputField(
+                    controller: _customerPasswordCtrl,
+                    hint: 'Password',
+                    icon: Icons.lock_outline,
+                    obscure: _obscureCustomerPw,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureCustomerPw
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
+                        color: AppTheme.textHint,
+                      ),
+                      onPressed: () => setState(
+                          () => _obscureCustomerPw = !_obscureCustomerPw),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Password wajib diisi'
+                        : null,
+                    onSubmit: (_) => _handleCustomerLogin(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: FilledButton(
+                      onPressed: vm.isLoading ? null : _handleCustomerLogin,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ],
+                      ),
+                      child: vm.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'SIGN IN',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                fontSize: 13,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                ],
-
-                _InputField(
-                  controller: _loginUsernameCtrl,
-                  hint: 'Username',
-                  icon: Icons.person_outline,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Username wajib diisi'
-                      : null,
-                  onSubmit: (_) => _handleLogin(),
-                ),
-                const SizedBox(height: 10),
-                _InputField(
-                  controller: _loginPasswordCtrl,
-                  hint: 'Password',
-                  icon: Icons.lock_outline,
-                  obscure: _obscureLoginPw,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureLoginPw
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      size: 18,
-                      color: AppTheme.textHint,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscureLoginPw = !_obscureLoginPw),
-                  ),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Password wajib diisi'
-                      : null,
-                  onSubmit: (_) => _handleLogin(),
-                ),
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: FilledButton(
-                    onPressed: vm.isLoading ? null : _handleLogin,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  TextButton(
+                    onPressed: () => setState(() => _isCustomerRegister = true),
+                    child: const Text(
+                      'Belum punya akun? Buat akun di sini',
+                      style: TextStyle(
+                        color: AppTheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: vm.isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'SIGN IN',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                              fontSize: 13,
-                            ),
-                          ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Default: admin / admin123',
-                  style: TextStyle(
-                    color: AppTheme.textHint,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -393,143 +436,279 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Sign Up Form ──
   Widget _buildSignUpForm() {
     return Consumer<AuthViewModel>(
       builder: (context, vm, _) {
         return Container(
           color: Colors.white,
+          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 44),
-          child: Form(
-            key: _regFormKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Create Account',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Buat akun baru',
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                if (vm.errorMessage != null && _isSignUp) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.danger.withAlpha(15),
-                      borderRadius: BorderRadius.circular(8),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _regFormKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline,
-                            color: AppTheme.danger, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            vm.errorMessage!,
-                            style: const TextStyle(
-                              color: AppTheme.danger,
-                              fontSize: 12,
-                            ),
-                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Buat akun customer baru',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (vm.errorMessage != null && !_isAdminMode && _isCustomerRegister) ...[
+                    _buildErrorBox(vm.errorMessage!),
+                  ],
+
+                  _InputField(
+                    controller: _regFullNameCtrl,
+                    hint: 'Nama Lengkap',
+                    icon: Icons.badge_outlined,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Nama wajib diisi'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  _InputField(
+                    controller: _regUsernameCtrl,
+                    hint: 'Username',
+                    icon: Icons.person_outline,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Username wajib diisi'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  _InputField(
+                    controller: _regPasswordCtrl,
+                    hint: 'Password',
+                    icon: Icons.lock_outline,
+                    obscure: _obscureRegPw,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureRegPw
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
+                        color: AppTheme.textHint,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscureRegPw = !_obscureRegPw),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return 'Password wajib diisi';
+                      }
+                      if (v.trim().length < 4) return 'Minimal 4 karakter';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: FilledButton(
+                      onPressed: vm.isLoading ? null : _handleRegister,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ],
+                      ),
+                      child: vm.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'SIGN UP',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                fontSize: 13,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                ],
-
-                _InputField(
-                  controller: _regFullNameCtrl,
-                  hint: 'Nama Lengkap',
-                  icon: Icons.badge_outlined,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Nama wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: 10),
-                _InputField(
-                  controller: _regUsernameCtrl,
-                  hint: 'Username',
-                  icon: Icons.person_outline,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Username wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: 10),
-                _InputField(
-                  controller: _regPasswordCtrl,
-                  hint: 'Password',
-                  icon: Icons.lock_outline,
-                  obscure: _obscureRegPw,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureRegPw
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      size: 18,
-                      color: AppTheme.textHint,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscureRegPw = !_obscureRegPw),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Password wajib diisi';
-                    }
-                    if (v.trim().length < 4) return 'Minimal 4 karakter';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: FilledButton(
-                    onPressed: vm.isLoading ? null : _handleRegister,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  TextButton(
+                    onPressed: () => setState(() => _isCustomerRegister = false),
+                    child: const Text(
+                      'Sudah punya akun? Sign In',
+                      style: TextStyle(
+                        color: AppTheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: vm.isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'SIGN UP',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                              fontSize: 13,
-                            ),
-                          ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAdminForm() {
+    return Consumer<AuthViewModel>(
+      builder: (context, vm, _) {
+        return Container(
+          color: Colors.white,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 44),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _adminLoginFormKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Admin Login',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Masuk sebagai administrator',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (vm.errorMessage != null && _isAdminMode) ...[
+                    _buildErrorBox(vm.errorMessage!),
+                  ],
+
+                  _InputField(
+                    controller: _adminUsernameCtrl,
+                    hint: 'Username',
+                    icon: Icons.person_outline,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Username wajib diisi'
+                        : null,
+                    onSubmit: (_) => _handleAdminLogin(),
+                  ),
+                  const SizedBox(height: 10),
+                  _InputField(
+                    controller: _adminPasswordCtrl,
+                    hint: 'Password',
+                    icon: Icons.lock_outline,
+                    obscure: _obscureAdminPw,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureAdminPw
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
+                        color: AppTheme.textHint,
+                      ),
+                      onPressed: () => setState(
+                          () => _obscureAdminPw = !_obscureAdminPw),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Password wajib diisi'
+                        : null,
+                    onSubmit: (_) => _handleAdminLogin(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: FilledButton(
+                      onPressed: vm.isLoading ? null : _handleAdminLogin,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: vm.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'SIGN IN',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                fontSize: 13,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Default: admin / admin123',
+                    style: TextStyle(
+                      color: AppTheme.textHint,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorBox(String message) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.danger.withAlpha(15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.error_outline, color: AppTheme.danger, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: AppTheme.danger,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -594,6 +773,7 @@ class _LoginViewState extends State<LoginView>
     );
   }
 }
+
 
 // ── Reusable input field (styled like the reference) ──
 class _InputField extends StatelessWidget {
