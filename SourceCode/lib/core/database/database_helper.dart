@@ -29,9 +29,11 @@ class DatabaseHelper {
     // Gunakan databaseFactoryFfi karena ini aplikasi desktop (Windows).
     final dbFactory = databaseFactoryFfi;
 
-    // Tentukan path database di folder default sqflite.
-    final dbPath = await dbFactory.getDatabasesPath();
-    final path = p.join(dbPath, AppConstants.dbName);
+    // Tentukan path database ke folder Database yang baru dibuat di root
+    // Karena aplikasi ini dijalankan dari SourceCode, path-nya adalah ../Database/
+    final currentDir = p.current;
+    final dbDir = p.join(currentDir, '..', 'Database');
+    final path = p.join(dbDir, AppConstants.dbName);
 
     return dbFactory.openDatabase(
       path,

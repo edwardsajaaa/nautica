@@ -258,23 +258,6 @@ class _LoginViewState extends State<LoginView>
                   );
                 },
               ),
-
-              // --- Tombol Kembali (Pojok Kiri Atas) ---
-              Positioned(
-                top: 24,
-                left: 24,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-                  tooltip: 'Kembali',
-                  onPressed: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    } else {
-                      Navigator.pushReplacementNamed(context, '/');
-                    }
-                  },
-                ),
-              ),
             ],
           );
         },
