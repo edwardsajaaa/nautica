@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'kiosk_schedule_view.dart';
 import '../../../main.dart'; // For AuthGate
+import 'package:provider/provider.dart';
+import '../../auth/viewmodels/auth_viewmodel.dart';
 
 class KioskWelcomeView extends StatefulWidget {
   const KioskWelcomeView({super.key});
@@ -221,12 +223,10 @@ class _KioskWelcomeViewState extends State<KioskWelcomeView> with TickerProvider
               right: 24,
               child: IconButton(
                 icon: const Icon(Icons.admin_panel_settings, color: Colors.white38, size: 32),
-                tooltip: 'Admin Login',
+                tooltip: 'Kembali ke Login',
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AuthGate()),
-                  );
+                  // Logout dari akun Loket agar AuthGate mengarahkan kembali ke LoginView
+                  context.read<AuthViewModel>().logout();
                 },
               ),
             ),

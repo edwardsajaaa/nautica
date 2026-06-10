@@ -122,6 +122,27 @@ class _MainShellState extends State<MainShell> {
       backgroundColor: AppTheme.background,
       body: Row(
         children: [
+          // ── Notification Listener ──
+          Consumer<TicketingViewModel>(
+            builder: (context, vm, child) {
+              if (vm.newNotificationMessage != null) {
+                final msg = vm.newNotificationMessage!;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(msg),
+                      backgroundColor: AppTheme.success,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  context.read<TicketingViewModel>().clearNotification();
+                });
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          
           // ── Sidebar ──
           Container(
             width: 220,
@@ -158,81 +179,84 @@ class _MainShellState extends State<MainShell> {
                 ),
 
                 // Nav items
-                ...List.generate(_navItems.length, (index) {
-                  final item = _navItems[index];
-                  final isSelected = _selectedIndex == index;
-                  // Settings sekarang mengarah ke Manajemen Kapal
-                  final isClickable = index < 4;
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: List.generate(_navItems.length, (index) {
+                      final item = _navItems[index];
+                      final isSelected = _selectedIndex == index;
+                      // Settings sekarang mengarah ke Manajemen Kapal
+                      final isClickable = index < 4;
 
-                  // Tambahkan badge untuk Laporan Manifest (Index 1)
-                  Widget iconWidget = Icon(
-                    item.icon,
-                    size: 20,
-                    color: isSelected ? Colors.white : AppTheme.textSecondary,
-                  );
-
-                  if (index == 1) {
-                    // Dapatkan total tiket terjual untuk badge notifikasi
-                    final vm = context.watch<TicketingViewModel>();
-                    final totalSold = vm.schedules.fold<int>(0, (prev, s) => prev + (s['sold_seats'] as int));
-                    
-                    if (totalSold > 0) {
-                      iconWidget = Badge(
-                        label: Text(totalSold.toString()),
-                        backgroundColor: AppTheme.danger,
-                        child: iconWidget,
+                      // Tambahkan badge untuk Laporan Manifest (Index 1)
+                      Widget iconWidget = Icon(
+                        item.icon,
+                        size: 20,
+                        color: isSelected ? Colors.white : AppTheme.textSecondary,
                       );
-                    }
-                  }
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    child: Material(
-                      color: isSelected
-                          ? AppTheme.primary
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: isClickable
-                            ? () => setState(() => _selectedIndex = index)
-                            : null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              iconWidget,
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  item.label,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : AppTheme.textSecondary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                      if (index == 1) {
+                        // Dapatkan total tiket baru (unread) untuk badge notifikasi
+                        final vm = context.watch<TicketingViewModel>();
+                        final totalUnread = vm.totalUnread;
+                        
+                        if (totalUnread > 0) {
+                          iconWidget = Badge(
+                            label: Text(totalUnread.toString()),
+                            backgroundColor: AppTheme.danger,
+                            child: iconWidget,
+                          );
+                        }
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 2,
+                        ),
+                        child: Material(
+                          color: isSelected
+                              ? AppTheme.primary
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: isClickable
+                                ? () => setState(() => _selectedIndex = index)
+                                : null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
                               ),
-                            ],
+                              child: Row(
+                                children: [
+                                  iconWidget,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      item.label,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppTheme.textSecondary,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }),
-
-                const Spacer(),
+                      );
+                    }),
+                  ),
+                ),
 
                 // ── User info + Logout ──
                 Padding(

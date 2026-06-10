@@ -33,10 +33,25 @@ class ManifestViewModel extends ChangeNotifier {
   Future<void> selectSchedule(Map<String, dynamic>? schedule) async {
     _selectedSchedule = schedule;
     if (schedule != null) {
-      await fetchManifest(schedule['id'] as int);
+      final scheduleId = schedule['id'] as int;
+      await _markScheduleAsRead(scheduleId);
+      await fetchManifest(scheduleId);
     } else {
       _manifestData = [];
       notifyListeners();
+    }
+  }
+
+  Future<void> _markScheduleAsRead(int scheduleId) async {
+    try {
+      final db = await _dbHelper.database;
+      await db.rawUpdate('''
+        UPDATE ${AppConstants.tableManifest}
+        SET is_read = 1
+        WHERE schedule_id = ? AND is_read = 0
+      ''', [scheduleId]);
+    } catch (e) {
+      debugPrint('Error marking as read: $e');
     }
   }
 

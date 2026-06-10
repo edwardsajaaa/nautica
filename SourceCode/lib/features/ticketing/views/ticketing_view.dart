@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_theme.dart';
+import '../../auth/viewmodels/auth_viewmodel.dart';
 import '../viewmodels/ticketing_viewmodel.dart';
 
 class TicketingView extends StatefulWidget {
@@ -46,7 +47,8 @@ class _TicketingViewState extends State<TicketingView> {
       return;
     }
 
-    final ticketId = await vm.processTicket(passengerName: name, passengerNik: nik);
+    final userId = context.read<AuthViewModel>().currentUser!.id!;
+    final ticketId = await vm.processTicket(userId: userId, passengerName: name, passengerNik: nik);
 
     if (ticketId != null && mounted) {
       _showETicketDialog(context, ticketId, name, nik, vm.selectedSchedule!['route']);

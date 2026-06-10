@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../viewmodels/kiosk_viewmodel.dart';
+import '../../auth/viewmodels/auth_viewmodel.dart';
 import 'kiosk_ticket_view.dart';
 import '../../../core/constants/app_theme.dart';
 
@@ -224,7 +225,8 @@ class _KioskPaymentViewState extends State<KioskPaymentView> with SingleTickerPr
                             height: 80,
                             child: ElevatedButton(
                               onPressed: () async {
-                                final success = await vm.processPayment();
+                                final userId = context.read<AuthViewModel>().currentUser!.id!;
+                                final success = await vm.processPayment(userId);
                                 if (success && context.mounted) {
                                   Navigator.pushReplacement(
                                     context,

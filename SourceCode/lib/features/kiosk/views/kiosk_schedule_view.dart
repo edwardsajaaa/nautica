@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/kiosk_viewmodel.dart';
@@ -15,7 +16,11 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<KioskViewModel>().fetchSchedules());
+    Future.microtask(() {
+      final vm = context.read<KioskViewModel>();
+      vm.fetchSchedules();
+      vm.startAutoRefresh();
+    });
   }
 
   String _formatCurrency(double amount) {
@@ -114,13 +119,8 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
                             style: TextStyle(fontSize: 24, color: AppTheme.textSecondary),
                           ),
                         )
-                      : GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 1.05, // Adjusted to fit more content
-                            crossAxisSpacing: 32,
-                            mainAxisSpacing: 32,
-                          ),
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 24),
                           itemCount: vm.schedules.length,
                           itemBuilder: (context, index) {
                             final schedule = vm.schedules[index];
@@ -147,6 +147,7 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
 
                             return Card(
                               elevation: 4,
+                              margin: const EdgeInsets.only(bottom: 32),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                               color: Colors.white,
                               child: InkWell(
@@ -171,177 +172,188 @@ class _KioskScheduleViewState extends State<KioskScheduleView> {
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(32.0),
-                                  child: Column(
+                                  child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Top Header: Badge & Duration
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                            decoration: BoxDecoration(
-                                              color: badgeColor.withAlpha(30),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              badgeText,
-                                              style: TextStyle(color: badgeColor, fontWeight: FontWeight.bold, fontSize: 16),
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Icon(Icons.timer_outlined, color: Colors.grey.shade600, size: 20),
-                                              const SizedBox(width: 8),
-                                              Text('± 4 jam perjalanan', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                      const SizedBox(height: 32),
-                                      
-                                      // Route Visual
-                                      Row(
-                                        children: [
-                                          Text(origin, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary)),
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(child: Container(height: 2, color: Colors.grey.shade300)),
-                                                  const Padding(
-                                                    padding: EdgeInsets.symmetric(horizontal: 12),
-                                                    child: Icon(Icons.directions_boat, color: AppTheme.primary, size: 32),
-                                                  ),
-                                                  Expanded(child: Container(height: 2, color: Colors.grey.shade300)),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          Text(destination, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 24),
-                                      
-                                      // Departure Info
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
-                                            child: const Icon(Icons.calendar_month, color: AppTheme.primary),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '${_formatDate(schedule['departure_date'])} — ${schedule['departure_time']} WITA',
-                                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                schedule['ship_name'],
-                                                style: const TextStyle(fontSize: 16, color: AppTheme.textSecondary),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 24),
-                                      
-                                      // Facilities
-                                      Row(
-                                        children: [
-                                          Icon(Icons.chair, size: 20, color: Colors.grey.shade600),
-                                          const SizedBox(width: 8), Text('Ekonomi', style: TextStyle(color: Colors.grey.shade600)),
-                                          const SizedBox(width: 16),
-                                          Icon(Icons.ac_unit, size: 20, color: Colors.grey.shade600),
-                                          const SizedBox(width: 8), Text('AC', style: TextStyle(color: Colors.grey.shade600)),
-                                          const SizedBox(width: 16),
-                                          Icon(Icons.restaurant, size: 20, color: Colors.grey.shade600),
-                                          const SizedBox(width: 8), Text('Kantin', style: TextStyle(color: Colors.grey.shade600)),
-                                          const SizedBox(width: 16),
-                                          Icon(Icons.wc, size: 20, color: Colors.grey.shade600),
-                                          const SizedBox(width: 8), Text('Toilet', style: TextStyle(color: Colors.grey.shade600)),
-                                        ],
-                                      ),
-                                      
-                                      const SizedBox(height: 24),
-                                      
-                                      // Image
-                                      Expanded(
-                                        child: Container(
-                                          width: double.infinity,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(16),
-                                            border: Border.all(color: AppTheme.primary, width: 2), // Matching the blue border from screenshot
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(14),
-                                            child: Image.asset(
-                                              'assets/images/DSCF7155.jpeg',
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
+                                      // Left: Image
+                                      Container(
+                                        width: 320,
+                                        height: 240,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(color: AppTheme.primary, width: 2),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(14),
+                                          child: ((schedule['image_path'] as String?) ?? 'assets/images/DSCF7155.jpeg').startsWith('assets/') 
+                                              ? Image.asset(
+                                                  schedule['image_path'] as String? ?? 'assets/images/DSCF7155.jpeg',
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Image.file(
+                                                  File(schedule['image_path'] as String),
+                                                  fit: BoxFit.cover,
+                                                ),
                                         ),
                                       ),
+                                      const SizedBox(width: 32),
                                       
-                                      const SizedBox(height: 24),
-                                      
-                                      // Bottom Action
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text('Harga Tiket', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
-                                              Text(
-                                                _formatCurrency((schedule['price'] as num).toDouble()),
-                                                style: TextStyle(
-                                                  fontSize: 32,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: available <= 0 ? Colors.grey : AppTheme.primary,
+                                      // Right: Details
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            // Top Header: Route & Badge
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                // Route Visual
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      Text(origin, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+                                                      Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                        child: Row(
+                                                          children: [
+                                                            Container(width: 40, height: 2, color: Colors.grey.shade300),
+                                                            const Padding(
+                                                              padding: EdgeInsets.symmetric(horizontal: 12),
+                                                              child: Icon(Icons.directions_boat, color: AppTheme.primary, size: 32),
+                                                            ),
+                                                            Container(width: 40, height: 2, color: Colors.grey.shade300),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Text(destination, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primary)),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                          ElevatedButton.icon(
-                                            onPressed: available <= 0 ? null : () {
-                                              vm.selectSchedule(schedule);
-                                              Navigator.push(
-                                                context,
-                                                PageRouteBuilder(
-                                                  pageBuilder: (context, animation, secondaryAnimation) => const KioskSeatView(),
-                                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                                    return SlideTransition(
-                                                      position: Tween<Offset>(
-                                                        begin: const Offset(1.0, 0.0),
-                                                        end: Offset.zero,
-                                                      ).animate(animation),
-                                                      child: child,
+                                                // Badge
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                                  decoration: BoxDecoration(
+                                                    color: badgeColor.withAlpha(30),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: Text(
+                                                    badgeText,
+                                                    style: TextStyle(color: badgeColor, fontWeight: FontWeight.bold, fontSize: 16),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 24),
+                                            
+                                            // Departure Info & Duration
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(12),
+                                                  decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+                                                  child: const Icon(Icons.calendar_month, color: AppTheme.primary),
+                                                ),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        '${_formatDate(schedule['departure_date'])} — ${schedule['departure_time']} WITA',
+                                                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        schedule['ship_name'],
+                                                        style: const TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                // Duration
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.timer_outlined, color: Colors.grey.shade600, size: 20),
+                                                    const SizedBox(width: 8),
+                                                    Text('± 4 jam perjalanan', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 24),
+                                            
+                                            // Facilities
+                                            Wrap(
+                                              spacing: 24,
+                                              runSpacing: 12,
+                                              children: [
+                                                if ((schedule['facility_ekonomi'] as int? ?? 0) == 1)
+                                                  Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.chair, size: 20, color: Colors.grey.shade600), const SizedBox(width: 8), Text('Ekonomi', style: TextStyle(color: Colors.grey.shade600, fontSize: 16))]),
+                                                if ((schedule['facility_ac'] as int? ?? 0) == 1)
+                                                  Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.ac_unit, size: 20, color: Colors.grey.shade600), const SizedBox(width: 8), Text('AC', style: TextStyle(color: Colors.grey.shade600, fontSize: 16))]),
+                                                if ((schedule['facility_kantin'] as int? ?? 0) == 1)
+                                                  Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.restaurant, size: 20, color: Colors.grey.shade600), const SizedBox(width: 8), Text('Kantin', style: TextStyle(color: Colors.grey.shade600, fontSize: 16))]),
+                                                if ((schedule['facility_toilet'] as int? ?? 0) == 1)
+                                                  Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.wc, size: 20, color: Colors.grey.shade600), const SizedBox(width: 8), Text('Toilet', style: TextStyle(color: Colors.grey.shade600, fontSize: 16))]),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 32),
+                                            
+                                            // Bottom Action (Price & Button)
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Text('Harga Tiket', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
+                                                    Text(
+                                                      _formatCurrency((schedule['price'] as num).toDouble()),
+                                                      style: TextStyle(
+                                                        fontSize: 32,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: available <= 0 ? Colors.grey : AppTheme.primary,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                ElevatedButton.icon(
+                                                  onPressed: available <= 0 ? null : () {
+                                                    vm.selectSchedule(schedule);
+                                                    Navigator.push(
+                                                      context,
+                                                      PageRouteBuilder(
+                                                        pageBuilder: (context, animation, secondaryAnimation) => const KioskSeatView(),
+                                                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                          return SlideTransition(
+                                                            position: Tween<Offset>(
+                                                              begin: const Offset(1.0, 0.0),
+                                                              end: Offset.zero,
+                                                            ).animate(animation),
+                                                            child: child,
+                                                          );
+                                                        },
+                                                      ),
                                                     );
                                                   },
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: available <= 0 ? Colors.grey.shade300 : AppTheme.primary,
-                                              foregroundColor: available <= 0 ? Colors.grey.shade600 : Colors.white,
-                                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                              elevation: available <= 0 ? 0 : 4,
-                                            ),
-                                            icon: const Icon(Icons.arrow_forward),
-                                            label: Text(
-                                              available <= 0 ? 'Tiket Habis' : 'Pilih & Beli',
-                                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                            ),
-                                          )
-                                        ],
-                                      )
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: available <= 0 ? Colors.grey.shade300 : AppTheme.primary,
+                                                    foregroundColor: available <= 0 ? Colors.grey.shade600 : Colors.white,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                                    elevation: available <= 0 ? 0 : 4,
+                                                  ),
+                                                  icon: const Icon(Icons.arrow_forward),
+                                                  label: Text(
+                                                    available <= 0 ? 'Tiket Habis' : 'Pilih & Beli',
+                                                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),

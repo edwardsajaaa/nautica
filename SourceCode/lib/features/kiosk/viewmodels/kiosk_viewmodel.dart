@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 
 class KioskViewModel extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  Timer? _refreshTimer;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -90,9 +91,11 @@ class KioskViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchSchedules() async {
-    _isLoading = true;
-    notifyListeners();
+  Future<void> fetchSchedules({bool silent = false}) async {
+    if (!silent) {
+      _isLoading = true;
+      notifyListeners();
+    }
 
     try {
       final allSchedules = await _dbHelper.queryAll(AppConstants.tableSchedules);
@@ -101,9 +104,24 @@ class KioskViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error fetching schedules: $e');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!silent) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
+  }
+
+  void startAutoRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      fetchSchedules(silent: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   void selectSchedule(Map<String, dynamic> schedule) {
@@ -182,7 +200,7 @@ class KioskViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> processPayment() async {
+  Future<bool> processPayment(int userId) async {
     if (_selectedSchedule == null || _selectedSeat == null || _passengerNik.length != 16) {
       return false;
     }
@@ -209,6 +227,7 @@ class KioskViewModel extends ChangeNotifier {
         'final_price': _finalPrice,
         'purchase_time': DateTime.now().toIso8601String(),
         'ticket_id': newTicketId,
+        'user_id': userId,
       });
 
       final db = await _dbHelper.database;

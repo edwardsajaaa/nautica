@@ -29,6 +29,7 @@ class _LoginViewState extends State<LoginView>
   final _regUsernameCtrl = TextEditingController();
   final _regPasswordCtrl = TextEditingController();
   final _regFullNameCtrl = TextEditingController();
+  final _regLocationCtrl = TextEditingController();
   final _regFormKey = GlobalKey<FormState>();
 
   bool _obscureAdminPw = true;
@@ -61,6 +62,7 @@ class _LoginViewState extends State<LoginView>
     _regUsernameCtrl.dispose();
     _regPasswordCtrl.dispose();
     _regFullNameCtrl.dispose();
+    _regLocationCtrl.dispose();
     super.dispose();
   }
 
@@ -103,11 +105,13 @@ class _LoginViewState extends State<LoginView>
       _regUsernameCtrl.text.trim(),
       _regPasswordCtrl.text.trim(),
       _regFullNameCtrl.text.trim(),
+      location: _regLocationCtrl.text.trim(),
     );
     if (success && mounted) {
       _regUsernameCtrl.clear();
       _regPasswordCtrl.clear();
       _regFullNameCtrl.clear();
+      _regLocationCtrl.clear();
       setState(() => _isCustomerRegister = false); // switch back to customer sign-in
     }
   }
@@ -456,10 +460,10 @@ class _LoginViewState extends State<LoginView>
 
                   _InputField(
                     controller: _regFullNameCtrl,
-                    hint: 'Nama Lengkap',
-                    icon: Icons.badge_outlined,
+                    hint: 'Nama Loket',
+                    icon: Icons.storefront_outlined,
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Nama wajib diisi'
+                        ? 'Nama loket wajib diisi'
                         : null,
                   ),
                   const SizedBox(height: 10),
@@ -470,6 +474,12 @@ class _LoginViewState extends State<LoginView>
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? 'Username wajib diisi'
                         : null,
+                  ),
+                  const SizedBox(height: 10),
+                  _InputField(
+                    controller: _regLocationCtrl,
+                    hint: 'Lokasi Dermaga (opsional)',
+                    icon: Icons.location_on_outlined,
                   ),
                   const SizedBox(height: 10),
                   _InputField(
@@ -645,14 +655,6 @@ class _LoginViewState extends State<LoginView>
                                 fontSize: 13,
                               ),
                             ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Default: admin / admin123',
-                    style: TextStyle(
-                      color: AppTheme.textHint,
-                      fontSize: 11,
                     ),
                   ),
                 ],

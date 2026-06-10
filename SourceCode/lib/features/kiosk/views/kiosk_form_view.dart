@@ -144,7 +144,7 @@ class _KioskFormViewState extends State<KioskFormView> {
                 controller: _nameController,
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
-                  hintText: 'Contoh: Budi Santoso',
+                  hintText: 'Contoh: ALU SHIAU SIBARANI',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                   filled: true,
                   fillColor: Colors.grey.shade50,

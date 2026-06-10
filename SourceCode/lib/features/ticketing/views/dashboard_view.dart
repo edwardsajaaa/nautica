@@ -48,118 +48,133 @@ class _DashboardViewState extends State<DashboardView> {
     final vm = context.watch<TicketingViewModel>();
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${_getGreeting()}, Administrator',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
+          SliverToBoxAdapter(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_getGreeting()}, Administrator',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _getFormattedDate(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppTheme.textSecondary,
+                    const SizedBox(height: 4),
+                    Text(
+                      _getFormattedDate(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              // Optional: Add some action buttons or refresh button here
-              IconButton(
-                icon: const Icon(Icons.refresh, color: AppTheme.primary),
-                tooltip: 'Refresh Data',
-                onPressed: () {
-                  context.read<TicketingViewModel>().fetchSchedules(isRefresh: true);
-                  context.read<AuthViewModel>().fetchAllLokets();
-                },
-              ),
-            ],
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: AppTheme.primary),
+                  tooltip: 'Refresh Data',
+                  onPressed: () {
+                    context.read<TicketingViewModel>().fetchSchedules(isRefresh: true);
+                    context.read<AuthViewModel>().fetchAllLokets();
+                  },
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 32),
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
           
           // 4 Summary Cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  title: 'Total Tiket Terjual',
-                  value: '${vm.schedules.fold<int>(0, (prev, s) => prev + (s['sold_seats'] as int))}',
-                  icon: Icons.confirmation_num,
-                  color: AppTheme.primary,
-                  isPrimary: true,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Consumer<AuthViewModel>(
-                  builder: (context, auth, _) => _buildSummaryCard(
-                    title: 'Total Loket',
-                    value: '${auth.lokets.length}',
-                    icon: Icons.storefront,
-                    color: Colors.blueGrey,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildSummaryCard(
-                  title: 'Total Kapal',
-                  value: '${vm.totalShips}',
-                  icon: Icons.directions_boat,
-                  color: Colors.teal,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildSummaryCard(
-                  title: 'Pendapatan Hari Ini',
-                  value: _formatCurrency(vm.totalRevenue),
-                  icon: Icons.account_balance_wallet,
-                  color: Colors.green,
-                ),
-              ),
-            ],
+          SliverToBoxAdapter(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final cardWidth = constraints.maxWidth < 800 
+                    ? (constraints.maxWidth - 16) / 2 
+                    : (constraints.maxWidth - 48) / 4;
+                return Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      child: _buildSummaryCard(
+                        title: 'Total Tiket Terjual',
+                        value: '${vm.schedules.fold<int>(0, (prev, s) => prev + (s['sold_seats'] as int))}',
+                        icon: Icons.confirmation_num,
+                        color: AppTheme.primary,
+                        isPrimary: true,
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: Consumer<AuthViewModel>(
+                        builder: (context, auth, _) => _buildSummaryCard(
+                          title: 'Total Loket',
+                          value: '${auth.lokets.length}',
+                          icon: Icons.storefront,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _buildSummaryCard(
+                        title: 'Total Kapal',
+                        value: '${vm.totalShips}',
+                        icon: Icons.directions_boat,
+                        color: Colors.teal,
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _buildSummaryCard(
+                        title: 'Pendapatan Hari Ini',
+                        value: _formatCurrency(vm.totalRevenue),
+                        icon: Icons.account_balance_wallet,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                );
+              }
+            ),
           ),
 
-          const SizedBox(height: 32),
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
           
           // Filter Tabs & Title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Daftar Loket Terdaftar',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+          SliverToBoxAdapter(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Daftar Loket Terdaftar',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
           
           // Content / Empty State
           Consumer<AuthViewModel>(
             builder: (context, authVm, _) {
               if (authVm.isLoading) {
-                return const Expanded(child: Center(child: CircularProgressIndicator()));
+                return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
               }
               if (authVm.lokets.isEmpty) {
-                return Expanded(
+                return SliverFillRemaining(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -175,83 +190,167 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                 );
               }
-              return Expanded(
-                child: ListView.builder(
-                  itemCount: authVm.lokets.length,
-                  itemBuilder: (context, index) {
-                    final loket = authVm.lokets[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryLight,
-                                borderRadius: BorderRadius.circular(12),
+              return SliverPadding(
+                padding: const EdgeInsets.only(bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final loket = authVm.lokets[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        child: InkWell(
+                          onTap: () => _showLoketStatistics(context, loket),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryLight,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.storefront, 
+                                  color: AppTheme.primary, 
+                                  size: 32
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.storefront, 
-                                color: AppTheme.primary, 
-                                size: 32
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    loket['full_name'] ?? 'Unknown Name',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      loket['full_name'] ?? 'Unknown Name',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.person, size: 16, color: AppTheme.textSecondary),
-                                      const SizedBox(width: 4),
-                                      Text(
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.person, size: 16, color: AppTheme.textSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(
                                         loket['username'] ?? '',
                                         style: const TextStyle(color: AppTheme.textSecondary),
                                       ),
                                     ],
                                   ),
+                                  if (loket['location'] != null && loket['location'].toString().isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.location_on, size: 16, color: AppTheme.textSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          loket['location'],
+                                          style: const TextStyle(color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
                             const SizedBox(width: 20),
-                            // Badge Active
+                            // Badge Active / Inactive
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.green.shade50,
+                                color: (loket['is_active'] == 1 || loket['is_active'] == null) ? Colors.green.shade50 : Colors.red.shade50,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.green.shade200),
+                                border: Border.all(color: (loket['is_active'] == 1 || loket['is_active'] == null) ? Colors.green.shade200 : Colors.red.shade200),
                               ),
                               child: Text(
-                                'Aktif',
+                                (loket['is_active'] == 1 || loket['is_active'] == null) ? 'Aktif' : 'Nonaktif',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade700,
+                                  color: (loket['is_active'] == 1 || loket['is_active'] == null) ? Colors.green.shade700 : Colors.red.shade700,
                                 ),
                               ),
                             ),
-                          ],
+                            const SizedBox(width: 16),
+                              PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (value) async {
+                                if (value == 'view_credentials') {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Kredensial Loket'),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Username: ${loket['username']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          const SizedBox(height: 8),
+                                          Text('Password: ${loket['password']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text('Tutup'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else if (value == 'toggle') {
+                                  final currentStatus = (loket['is_active'] == 1 || loket['is_active'] == null) ? 1 : 0;
+                                  final newStatus = currentStatus == 1 ? 0 : 1;
+                                  final userId = loket['id'] as int;
+                                  final success = await context.read<AuthViewModel>().toggleLoketStatus(userId, newStatus);
+                                  if (success && mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Status loket berhasil diubah')),
+                                    );
+                                  }
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'view_credentials',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.visibility_outlined, color: Colors.blueGrey),
+                                      SizedBox(width: 8),
+                                      Text('Lihat Password'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'toggle',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        (loket['is_active'] == 1 || loket['is_active'] == null) ? Icons.block : Icons.check_circle_outline,
+                                        color: (loket['is_active'] == 1 || loket['is_active'] == null) ? Colors.red : Colors.green,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text((loket['is_active'] == 1 || loket['is_active'] == null) ? 'Nonaktifkan' : 'Aktifkan'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                        ),
+                      );
+                    },
+                    childCount: authVm.lokets.length,
+                  ),
                 ),
               );
             },
@@ -315,6 +414,129 @@ class _DashboardViewState extends State<DashboardView> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showLoketStatistics(BuildContext context, Map<String, dynamic> loket) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight.withAlpha(50),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.analytics, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Statistik: ${loket['full_name']}',
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Username: ${loket['username']}',
+                            style: const TextStyle(color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: context.read<AuthViewModel>().fetchLoketStatistics(loket['id'] as int),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    final stats = snapshot.data ?? [];
+                    if (stats.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.bar_chart, size: 64, color: Colors.grey.shade300),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Belum ada tiket yang dijual oleh loket ini.',
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(24),
+                      itemCount: stats.length,
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final stat = stats[index];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.calendar_month, color: Colors.green.shade700),
+                          ),
+                          title: Text(
+                            stat['date'] as String,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${stat['total_tickets']} Tiket',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

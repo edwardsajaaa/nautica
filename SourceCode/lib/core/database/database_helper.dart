@@ -54,7 +54,9 @@ class DatabaseHelper {
         id        INTEGER PRIMARY KEY AUTOINCREMENT,
         username  TEXT    NOT NULL UNIQUE,
         password  TEXT    NOT NULL,
-        full_name TEXT    NOT NULL
+        full_name TEXT    NOT NULL,
+        location  TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
@@ -68,7 +70,12 @@ class DatabaseHelper {
         departure_time TEXT    NOT NULL,
         total_seats    INTEGER NOT NULL,
         sold_seats     INTEGER NOT NULL DEFAULT 0,
-        price          REAL    NOT NULL
+        price          REAL    NOT NULL,
+        image_path     TEXT    NOT NULL,
+        facility_ekonomi INTEGER NOT NULL DEFAULT 0,
+        facility_ac      INTEGER NOT NULL DEFAULT 0,
+        facility_kantin  INTEGER NOT NULL DEFAULT 0,
+        facility_toilet  INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -89,7 +96,9 @@ class DatabaseHelper {
         seat_number       TEXT    NOT NULL,
         final_price       REAL    NOT NULL,
         purchase_time     TEXT    NOT NULL,
-        ticket_id         TEXT    NOT NULL UNIQUE
+        ticket_id         TEXT    NOT NULL UNIQUE,
+        is_read           INTEGER NOT NULL DEFAULT 0,
+        user_id           INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -109,6 +118,11 @@ class DatabaseHelper {
       'total_seats': 100, // 10 rows x 10 cols
       'sold_seats': 0,
       'price': 250000.0,
+      'image_path': 'assets/images/DSCF7155.jpeg',
+      'facility_ekonomi': 1,
+      'facility_ac': 1,
+      'facility_kantin': 1,
+      'facility_toilet': 1,
     });
     
     await db.insert(AppConstants.tableSchedules, {
@@ -119,6 +133,11 @@ class DatabaseHelper {
       'total_seats': 100, // 10 rows x 10 cols
       'sold_seats': 0,
       'price': 150000.0,
+      'image_path': 'assets/images/DSCF7155.jpeg',
+      'facility_ekonomi': 1,
+      'facility_ac': 0,
+      'facility_kantin': 0,
+      'facility_toilet': 1,
     });
     
     await db.insert(AppConstants.tableSchedules, {
@@ -129,6 +148,11 @@ class DatabaseHelper {
       'total_seats': 100,
       'sold_seats': 0,
       'price': 200000.0,
+      'image_path': 'assets/images/DSCF7155.jpeg',
+      'facility_ekonomi': 1,
+      'facility_ac': 1,
+      'facility_kantin': 1,
+      'facility_toilet': 1,
     });
     
     await db.insert(AppConstants.tableSchedules, {
@@ -139,20 +163,36 @@ class DatabaseHelper {
       'total_seats': 100,
       'sold_seats': 0,
       'price': 300000.0,
+      'image_path': 'assets/images/DSCF7155.jpeg',
+      'facility_ekonomi': 1,
+      'facility_ac': 1,
+      'facility_kantin': 1,
+      'facility_toilet': 1,
     });
   }
 
   // ── Migrasi Database ───────────────────────────────────────────────
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 8) {
+    if (oldVersion < 11) {
       // Drop old tables
       await db.execute('DROP TABLE IF EXISTS tour_packages');
       await db.execute('DROP TABLE IF EXISTS bookings');
       await db.execute('DROP TABLE IF EXISTS equipments');
+      await db.execute('DROP TABLE IF EXISTS ${AppConstants.tableUsers}');
       await db.execute('DROP TABLE IF EXISTS ${AppConstants.tableSchedules}');
       await db.execute('DROP TABLE IF EXISTS ${AppConstants.tableManifest}');
       
       // Create new tables (if users table doesn't exist, it will be handled. But we assume it exists)
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${AppConstants.tableUsers} (
+          id        INTEGER PRIMARY KEY AUTOINCREMENT,
+          username  TEXT    NOT NULL UNIQUE,
+          password  TEXT    NOT NULL,
+          full_name TEXT    NOT NULL,
+          location  TEXT,
+          is_active INTEGER NOT NULL DEFAULT 1
+        )
+      ''');
       await db.execute('''
         CREATE TABLE IF NOT EXISTS ${AppConstants.tableSchedules} (
           id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,7 +202,12 @@ class DatabaseHelper {
           departure_time TEXT    NOT NULL,
           total_seats    INTEGER NOT NULL,
           sold_seats     INTEGER NOT NULL DEFAULT 0,
-          price          REAL    NOT NULL
+          price          REAL    NOT NULL,
+          image_path     TEXT    NOT NULL,
+          facility_ekonomi INTEGER NOT NULL DEFAULT 0,
+          facility_ac      INTEGER NOT NULL DEFAULT 0,
+          facility_kantin  INTEGER NOT NULL DEFAULT 0,
+          facility_toilet  INTEGER NOT NULL DEFAULT 0
         )
       ''');
 
@@ -182,7 +227,9 @@ class DatabaseHelper {
           seat_number       TEXT    NOT NULL,
           final_price       REAL    NOT NULL,
           purchase_time     TEXT    NOT NULL,
-          ticket_id         TEXT    NOT NULL UNIQUE
+          ticket_id         TEXT    NOT NULL UNIQUE,
+          is_read           INTEGER NOT NULL DEFAULT 0,
+          user_id           INTEGER NOT NULL DEFAULT 0
         )
       ''');
 

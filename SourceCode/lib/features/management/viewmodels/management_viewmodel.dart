@@ -36,6 +36,11 @@ class ManagementViewModel extends ChangeNotifier {
     required String departureTime,
     required int totalSeats,
     required double price,
+    required String imagePath,
+    required int facilityEkonomi,
+    required int facilityAc,
+    required int facilityKantin,
+    required int facilityToilet,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -49,11 +54,58 @@ class ManagementViewModel extends ChangeNotifier {
         'total_seats': totalSeats,
         'sold_seats': 0,
         'price': price,
+        'image_path': imagePath,
+        'facility_ekonomi': facilityEkonomi,
+        'facility_ac': facilityAc,
+        'facility_kantin': facilityKantin,
+        'facility_toilet': facilityToilet,
       });
       await fetchSchedules();
       return true;
     } catch (e) {
       debugPrint('Error adding schedule: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> updateSchedule({
+    required int id,
+    required String shipName,
+    required String route,
+    required String departureDate,
+    required String departureTime,
+    required int totalSeats,
+    required double price,
+    required String imagePath,
+    required int facilityEkonomi,
+    required int facilityAc,
+    required int facilityKantin,
+    required int facilityToilet,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _dbHelper.update(AppConstants.tableSchedules, {
+        'ship_name': shipName,
+        'route': route,
+        'departure_date': departureDate,
+        'departure_time': departureTime,
+        'total_seats': totalSeats,
+        'price': price,
+        'image_path': imagePath,
+        'facility_ekonomi': facilityEkonomi,
+        'facility_ac': facilityAc,
+        'facility_kantin': facilityKantin,
+        'facility_toilet': facilityToilet,
+      }, id);
+      await fetchSchedules();
+      return true;
+    } catch (e) {
+      debugPrint('Error updating schedule: $e');
       return false;
     } finally {
       _isLoading = false;

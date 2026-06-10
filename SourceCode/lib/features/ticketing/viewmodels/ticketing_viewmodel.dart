@@ -37,10 +37,29 @@ class TicketingViewModel extends ChangeNotifier {
   String _filterStatus = 'Semua'; // Semua, Aktif, Penuh
   String get filterStatus => _filterStatus;
 
+  // --- Notifications ---
+  Map<int, int> _unreadCounts = {};
+  Map<int, int> get unreadCounts => _unreadCounts;
+
+  int _totalUnread = 0;
+  int get totalUnread => _totalUnread;
+
+  int _previousTotalUnread = 0;
+
+  String? _newNotificationMessage;
+  String? get newNotificationMessage => _newNotificationMessage;
+
   Timer? _refreshTimer;
 
   TicketingViewModel() {
     _startAutoRefresh();
+  }
+
+  void clearNotification() {
+    if (_newNotificationMessage != null) {
+      _newNotificationMessage = null;
+      notifyListeners();
+    }
   }
 
   @override
@@ -63,6 +82,34 @@ class TicketingViewModel extends ChangeNotifier {
 
     try {
       _allSchedules = await _dbHelper.queryAll(AppConstants.tableSchedules);
+      
+      // Fetch unread counts
+      final db = await _dbHelper.database;
+      final unreadResult = await db.rawQuery('''
+        SELECT schedule_id, COUNT(*) as cnt 
+        FROM ${AppConstants.tableManifest} 
+        WHERE is_read = 0 
+        GROUP BY schedule_id
+      ''');
+      
+      _unreadCounts.clear();
+      int currentTotalUnread = 0;
+      for (var row in unreadResult) {
+        final sid = row['schedule_id'] as int;
+        final count = row['cnt'] as int;
+        _unreadCounts[sid] = count;
+        currentTotalUnread += count;
+      }
+
+      _totalUnread = currentTotalUnread;
+
+      // Trigger notification if there's a new ticket
+      if (_totalUnread > _previousTotalUnread && isRefresh) {
+        final diff = _totalUnread - _previousTotalUnread;
+        _newNotificationMessage = 'Ada $diff pesanan tiket baru!';
+      }
+      _previousTotalUnread = _totalUnread;
+
       _calculateMetrics();
       applyFilter(_filterStatus);
     } catch (e) {
@@ -137,6 +184,7 @@ class TicketingViewModel extends ChangeNotifier {
   }
 
   Future<String?> processTicket({
+    required int userId,
     required String passengerName,
     required String passengerNik,
   }) async {
@@ -154,9 +202,18 @@ class TicketingViewModel extends ChangeNotifier {
         'schedule_id': scheduleId,
         'passenger_name': passengerName,
         'passenger_nik': passengerNik,
+        'gender': 'Laki-laki',
+        'birth_place': '-',
+        'birth_date': '-',
+        'phone_number': '-',
+        'passenger_type': 'Dewasa',
+        'nationality': 'WNI',
+        'special_condition': '-',
         'seat_number': _selectedSeat,
+        'final_price': _selectedSchedule!['price'],
         'purchase_time': DateTime.now().toIso8601String(),
         'ticket_id': ticketId,
+        'user_id': userId,
       });
 
       // Update sold seats

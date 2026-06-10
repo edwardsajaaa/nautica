@@ -27,6 +27,7 @@ class AuthViewModel extends ChangeNotifier {
         username: 'admin',
         password: 'admin123',
         fullName: 'Administrator',
+        isActive: 1,
       ).toMap());
     }
   }
@@ -69,7 +70,14 @@ class AuthViewModel extends ChangeNotifier {
       );
 
       if (results.isNotEmpty) {
-        _currentUser = User.fromMap(results.first);
+        final user = User.fromMap(results.first);
+        if (user.isActive == 0 && user.username != 'admin') {
+          _errorMessage = 'Akun loket ini telah dinonaktifkan oleh Admin.';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+        _currentUser = user;
         _isLoading = false;
         notifyListeners();
         return true;
@@ -89,7 +97,7 @@ class AuthViewModel extends ChangeNotifier {
 
   /// Register akun baru.
   Future<bool> register(
-      String username, String password, String fullName) async {
+      String username, String password, String fullName, {String? location}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -112,8 +120,12 @@ class AuthViewModel extends ChangeNotifier {
 
       await db.insert(
         AppConstants.tableUsers,
-        User(username: username, password: password, fullName: fullName)
-            .toMap(),
+        User(
+          username: username, 
+          password: password, 
+          fullName: fullName, 
+          location: location,
+        ).toMap(),
       );
       _errorMessage = null;
       _isLoading = false;
@@ -132,5 +144,42 @@ class AuthViewModel extends ChangeNotifier {
     _currentUser = null;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Toggle status aktif/nonaktif sebuah loket (hanya untuk Admin).
+  Future<bool> toggleLoketStatus(int userId, int newStatus) async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      await db.update(
+        AppConstants.tableUsers,
+        {'is_active': newStatus},
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+      // Refresh list loket setelah update
+      await fetchAllLokets();
+      return true;
+    } catch (e) {
+      debugPrint('Error toggle status: $e');
+      return false;
+    }
+  }
+
+  /// Mengambil statistik pemesanan loket berdasarkan userId
+  Future<List<Map<String, dynamic>>> fetchLoketStatistics(int userId) async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final result = await db.rawQuery('''
+        SELECT DATE(purchase_time) as date, COUNT(*) as total_tickets
+        FROM ${AppConstants.tableManifest}
+        WHERE user_id = ?
+        GROUP BY DATE(purchase_time)
+        ORDER BY DATE(purchase_time) DESC
+      ''', [userId]);
+      return result;
+    } catch (e) {
+      debugPrint('Error fetching loket stats: $e');
+      return [];
+    }
   }
 }
